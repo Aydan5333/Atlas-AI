@@ -1,0 +1,149 @@
+name: Atlas Frontend (Next.js)
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  frontend_scaffold:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create Next.js minimal app (no build here; just files)
+        run: |
+          mkdir -p frontend/pages frontend/components frontend/lib
+          cat > frontend/package.json <<'JSON'
+          {
+            "name": "atlas-frontend",
+            "private": true,
+            "scripts": {
+              "dev": "next dev",
+              "build": "next build",
+              "start": "next start"
+            },
+            "dependencies": {
+              "next": "14.2.5",
+              "react": "18.2.0",
+              "react-dom": "18.2.0"
+            }
+          }
+          JSON
+
+          cat > frontend/next.config.js <<'JS'
+          /** @type {import('next').NextConfig} */
+          const nextConfig = { reactStrictMode: true };
+          module.exports = nextConfig;
+          JS
+
+          cat > frontend/lib/api.ts <<'TS'
+          export const API_BASE =
+            process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+          export async function api<T>(path: string, init?: RequestInit): Promise<T> {
+            const res = await fetch(API_BASE + path, init);
+            if (!res.ok) throw new Error(await res.text());
+            return res.json();
+          }
+          TS
+
+          cat > frontend/pages/index.tsx <<'TSX'
+          import { useEffect, useState } from "react";
+          import { api } from "../lib/api";
+          export default function Home() {
+            const [status, setStatus] = useState<string>("...");
+            useEffect(() => {
+              api<{ok:boolean}>("/health").then(d => setStatus(d.ok ? "OK" : "Fail")).catch(() => setStatus("Error"));
+            }, []);
+            return (
+              <main style={{padding:20,fontFamily:"sans-serif"}}>
+                <h1>Atlas Dashboard</h1>
+                <p>API health: <b>{status}</b></p>
+                <ul>
+                  <li><a href="/auth">Auth test</a></li>
+                  <li><a href="/notes">Notes</a></li>
+                </ul>
+              </main>
+            );
+          }
+          TSX
+
+          cat > frontend/pages/auth.tsx <<'TSX'
+          import { useState } from "react";
+          import { api } from "../lib/api";
+          export default function Auth() {
+            const [userId, setUserId] = useState("demo-user");
+            const [token, setToken] = useState<string>("");
+            const [who, setWho] = useState<string>("");
+            return (
+              <main style={{padding:20,fontFamily:"sans-serif"}}>
+                <h1>Auth</h1>
+                <input value={userId} onChange={e=>setUserId(e.target.value)} placeholder="user id" />
+                <button onClick={async ()=>{
+                  const data = await api<{token:string}>(`/auth/token?user_id=${encodeURIComponent(userId)}`, { method:"POST" });
+                  setToken(data.token);
+                }}>Get Token</button>
+                <p><small>Token:</small> <span style={{wordBreak:"break-all"}}>{token}</span></p>
+                <button disabled={!token} onClick={async ()=>{
+                  const data = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000"}/auth/whoami`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                  }).then(r=>r.json());
+                  setWho(JSON.stringify(data));
+                }}>Who am I?</button>
+                <pre>{who}</pre>
+              </main>
+            );
+          }
+          TSX
+
+          cat > frontend/pages/notes.tsx <<'TSX'
+          import { useEffect, useState } from "react";
+          export default function Notes() {
+            const API = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+            const [userId, setUserId] = useState("demo-user");
+            const [text, setText] = useState("");
+            const [items, setItems] = useState<any[]>([]);
+            async function reload() {
+              const d = await fetch(`${API}/notes/list?user_id=${encodeURIComponent(userId)}`).then(r=>r.json());
+              setItems(d.items || []);
+            }
+            useEffect(()=>{ reload(); }, []);
+            return (
+              <main style={{padding:20,fontFamily:"sans-serif"}}>
+                <h1>Notes</h1>
+                <div>
+                  <input value={userId} onChange={e=>setUserId(e.target.value)} placeholder="user id" />
+                </div>
+                <div>
+                  <textarea value={text} onChange={e=>setText(e.target.value)} placeholder="Write a note..."/>
+                  <button onClick={async ()=>{
+                    await fetch(`${API}/notes/add?user_id=${encodeURIComponent(userId)}`, {
+                      method:"POST", headers:{"Content-Type":"application/json"},
+                      body: JSON.stringify({ text })
+                    });
+                    setText("");
+                    reload();
+                  }}>Add</button>
+                </div>
+                <ul>
+                  {items.map(n=>(
+                    <li key={n.id}>
+                      #{n.id} — {n.text}
+                      <button onClick={async ()=>{
+                        await fetch(`${API}/notes/delete?note_id=${n.id}`, { method:"DELETE" });
+                        reload();
+                      }}>Delete</button>
+                    </li>
+                  ))}
+                </ul>
+              </main>
+            );
+          }
+          TSX
+
+          echo "frontend/node_modules" >> .gitignore
+
+      - name: Commit
+        uses: stefanzweifel/git-auto-commit-action@v5
+        env: { GITHUB_TOKEN: ${{ secrets.WORKFLOW_TOKEN }} }
+        with: { commit_message: "feat(frontend): scaffold Next.js dashboard under /frontend" }
