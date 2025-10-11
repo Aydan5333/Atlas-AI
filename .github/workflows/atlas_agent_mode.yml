@@ -1,0 +1,71 @@
+name: Atlas Agent Mode
+
+on:
+  workflow_dispatch:        # run it anytime
+  schedule:
+    - cron: "0 */6 * * *"   # optional: every 6 hours (UTC)
+
+permissions:
+  contents: write
+
+jobs:
+  sanity_check:
+    name: Sanity check API
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Show config summary
+        run: |
+          echo "Render API URL: ${RENDER_API_URL:-<missing>}"
+          echo "Vercel hook set: $([[ -n "${VERCEL_HOOK_URL}" ]] && echo yes || echo no)"
+          echo "Render hook set: $([[ -n "${RENDER_HOOK_URL}" ]] && echo yes || echo no)"
+        env:
+          RENDER_API_URL: ${{ secrets.RENDER_API_URL }}
+          VERCEL_HOOK_URL: ${{ secrets.VERCEL_URL }}   # keep for reference; real hook below
+          RENDER_HOOK_URL: ${{ secrets.RENDER_HOOK_URL }}
+
+      - name: Health probe
+        env:
+          BASE: ${{ secrets.RENDER_API_URL }}
+        run: |
+          set -e
+          echo "GET $BASE/health"
+          code=$(curl -s -o /tmp/health.json -w "%{http_code}" "$BASE/health")
+          cat /tmp/health.json || true
+          if [ "$code" -lt 200 ] || [ "$code" -ge 400 ]; then
+            echo "Health check failed with HTTP $code"
+            exit 1
+          fi
+
+  warm_endpoints:
+    name: Warm endpoints (best-effort)
+    runs-on: ubuntu-latest
+    needs: sanity_check
+    steps:
+      - name: Warm calls
+        env:
+          BASE: ${{ secrets.RENDER_API_URL }}
+        run: |
+          set +e
+          curl -sS "$BASE/hello?name=Atlas" >/dev/null
+          curl -sS "$BASE/notes/list?user_id=00000000-0000-0000-0000-000000000000" >/dev/null
+          echo "Warmed common routes."
+
+  redeploy_vercel:
+    name: Trigger Vercel redeploy (optional)
+    runs-on: ubuntu-latest
+    needs: sanity_check
+    if: ${{ secrets.VERCEL_HOOK_URL != '' }}
+    steps:
+      - name: POST Vercel deploy hook
+        run: curl -fsSL -X POST "${{ secrets.VERCEL_HOOK_URL }}"
+
+  redeploy_render:
+    name: Trigger Render redeploy (optional)
+    runs-on: ubuntu-latest
+    needs: sanity_check
+    if: ${{ secrets.RENDER_HOOK_URL != '' }}
+    steps:
+      - name: POST Render deploy hook
+        run: curl -fsSL -X POST "${{ secrets.RENDER_HOOK_URL }}"
