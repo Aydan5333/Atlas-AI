@@ -2,8 +2,19 @@ from fastapi import FastAPI, Body
 from app.atlas import hello
 from app.notes import NotesService
 from app.profiles import ProfilesService
+import os
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="Atlas API")
+# Allow your frontend (Vercel) to talk to your backend (Render)
+allowed_origin = os.getenv("ALLOWED_ORIGIN", "*")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[allowed_origin] if allowed_origin != "*" else ["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/health")
 def health(): 
