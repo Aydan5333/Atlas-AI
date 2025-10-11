@@ -1,0 +1,57 @@
+name: Atlas API Wireup
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  wireup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Overwrite run.py to auto-import endpoints + add CORS
+        run: |
+          cat > app/api/run.py <<'PY'
+          import os
+          import uvicorn
+          from app.api import app
+          # ---- CORS for frontend calls
+          try:
+              from fastapi.middleware.cors import CORSMiddleware
+              app.add_middleware(
+                  CORSMiddleware,
+                  allow_origins=["*"],  # tighten later if you want
+                  allow_methods=["*"],
+                  allow_headers=["*"],
+              )
+          except Exception:
+              pass
+
+          # ---- Auto-import extra endpoint modules so their routes register
+          try:
+              import app.api.auth_endpoints      # noqa: F401
+          except Exception:
+              pass
+          try:
+              import app.api.notes_extra_endpoints  # noqa: F401
+          except Exception:
+              pass
+          try:
+              import app.api.scheduler_endpoints    # noqa: F401
+          except Exception:
+              pass
+          try:
+              import app.api.profiles_endpoints     # noqa: F401
+          except Exception:
+              pass
+
+          if __name__ == "__main__":
+              uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT","8000")))
+          PY
+
+      - name: Commit
+        uses: stefanzweifel/git-auto-commit-action@v5
+        env: { GITHUB_TOKEN: ${{ secrets.WORKFLOW_TOKEN }} }
+        with: { commit_message: "chore: wire API imports + enable CORS in run.py" }
