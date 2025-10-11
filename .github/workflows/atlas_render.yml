@@ -1,0 +1,50 @@
+name: Atlas Render Scaffolding
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  render_scaffold:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Add render.yaml
+        run: |
+          cat > render.yaml <<'YAML'
+          services:
+            - type: web
+              name: atlas-api
+              env: python
+              plan: free
+              buildCommand: pip install -r requirements.txt
+              startCommand: uvicorn app.api:app --host 0.0.0.0 --port 10000
+              healthCheckPath: /health
+              envVars:
+                - key: SUPABASE_URL
+                  sync: false
+                - key: SUPABASE_ANON_KEY
+                  sync: false
+                - key: JWT_SECRET
+                  sync: false
+          YAML
+
+      - name: README Render guide
+        run: |
+          awk '1; END{
+            print "\n## Deploy on Render"
+            print "1) Go to https://render.com → New → Web Service → Select this repo."
+            print "2) It will read render.yaml automatically. Choose **Free** plan."
+            print "3) Add Environment Variables in Render dashboard:"
+            print "   - SUPABASE_URL"
+            print "   - SUPABASE_ANON_KEY"
+            print "   - JWT_SECRET"
+            print "4) Click **Create Web Service**. After build, open the URL, test /health."
+          }' README.md > README.tmp && mv README.tmp README.md
+
+      - name: Commit
+        uses: stefanzweifel/git-auto-commit-action@v5
+        env: { GITHUB_TOKEN: ${{ secrets.WORKFLOW_TOKEN }} }
+        with: { commit_message: "chore: add render.yaml + README instructions" }
