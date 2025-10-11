@@ -31,12 +31,15 @@ jobs:
           cat > app/profiles/service.py <<'PY'
           from typing import Optional, Dict, Any
           from app.supabase_client import get_client
+
           class ProfilesService:
               def __init__(self):
                   self.db = get_client()
+
               def upsert(self, user_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
                   res = self.db.table("profiles").upsert({"id": user_id, **data}).execute()
                   return (res.data or [{}])[0]
+
               def get(self, user_id: str) -> Optional[Dict[str, Any]]:
                   res = self.db.table("profiles").select("*").eq("id", user_id).single().execute()
                   return getattr(res, "data", None)
@@ -48,18 +51,20 @@ jobs:
           cat > app/notes/service.py <<'PY'
           from typing import Dict, Any, List
           from app.supabase_client import get_client
+
           class NotesService:
               def __init__(self):
                   self.db = get_client()
+
               def add(self, user_id: str, text: str) -> Dict[str, Any]:
-                  res=self.db.table("notes").insert({"user_id":user_id,"text":text}).execute()
+                  res = self.db.table("notes").insert({"user_id": user_id, "text": text}).execute()
                   return (res.data or [{}])[0]
+
               def list(self, user_id: str) -> List[Dict[str, Any]]:
-                  res=self.db.table("notes").select("*").eq("user_id",user_id).order("created_at").execute()
+                  res = self.db.table("notes").select("*").eq("user_id", user_id).order("created_at").execute()
                   return res.data or []
           PY
 
-          mkdir -p migrations
           cat > migrations/001_profiles.sql <<'SQL'
           create table if not exists public.profiles (
             id uuid primary key,
@@ -85,66 +90,65 @@ jobs:
           from app.atlas import hello
           from app.notes import NotesService
           from app.profiles import ProfilesService
+
           app = FastAPI(title="Atlas API")
+
           @app.get("/health")
-          def health(): return {"ok": True}
+          def health(): 
+              return {"ok": True}
+
           @app.get("/hello")
-          def greet(name: str = "D"): return {"message": hello(name)}
-          @app/post("/notes/add")
+          def greet(name: str = "D"):
+              return {"message": hello(name)}
+
+          @app.post("/notes/add")
           def add_note(user_id: str, text: str = Body(..., embed=True)):
               return NotesService().add(user_id, text)
+
           @app.get("/notes/list")
           def list_notes(user_id: str):
               return {"items": NotesService().list(user_id)}
+
           @app.post("/profiles/upsert")
           def upsert_profile(user_id: str, display_name: str = Body(None), avatar_url: str = Body(None)):
               data = {"display_name": display_name, "avatar_url": avatar_url}
               return ProfilesService().upsert(user_id, data)
+
           @app.get("/profiles/get")
           def get_profile(user_id: str):
               return ProfilesService().get(user_id)
           PY
+
           cat > app/api/run.py <<'PY'
           import os, uvicorn
           from app.api import app
+
           if __name__ == "__main__":
               uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT","8000")))
           PY
+
           awk '1; END{print "fastapi\nuvicorn"}' requirements.txt > r.tmp && mv r.tmp requirements.txt
 
-      - name: Add tests, tooling and CI
+      - name: Add tests and config (no CI workflow file here)
         run: |
           mkdir -p tests
           cat > tests/test_hello.py <<'PY'
           from app.atlas import hello
-          def test_hello(): assert "Atlas online" in hello("D")
+          def test_hello():
+              assert "Atlas online" in hello("D")
           PY
+
           cat > pyproject.toml <<'TOML'
           [tool.black]
           line-length = 100
           target-version = ["py311"]
+
           [tool.ruff]
           line-length = 100
+
           [tool.pytest.ini_options]
           addopts = "-q"
           TOML
-          mkdir -p .github/workflows
-          cat > .github/workflows/ci.yml <<'YML'
-          name: CI
-          on: { push: {}, pull_request: {} }
-          jobs:
-            test:
-              runs-on: ubuntu-latest
-              steps:
-                - uses: actions/checkout@v4
-                - uses: actions/setup-python@v5
-                  with: { python-version: "3.11" }
-                - run: pip install -r requirements.txt pytest black ruff mypy
-                - run: black --check .
-                - run: ruff check .
-                - run: mypy app || true
-                - run: pytest
-          YML
 
       - name: README updates
         run: |
@@ -161,6 +165,6 @@ jobs:
       - name: Commit all changes
         uses: stefanzweifel/git-auto-commit-action@v5
         env:
-          GITHUB_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}   # <-- pass PAT via env
+          GITHUB_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}
         with:
-          commit_message: "feat: autobuild profiles, notes, API, tooling, and CI"
+          commit_message: "feat: autobuild profiles, notes and API (CI added later)"
