@@ -5,3 +5,5 @@ fastapi
 uvicorn
 fastapi
 uvicorn
+fastapi
+uvicorn
