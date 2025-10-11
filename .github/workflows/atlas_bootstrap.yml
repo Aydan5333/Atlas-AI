@@ -1,5 +1,4 @@
 name: Atlas bootstrap
-
 on:
   workflow_dispatch:
 
@@ -10,91 +9,40 @@ jobs:
   scaffold:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
+      - name: Checkout
         uses: actions/checkout@v4
+        with:
+          persist-credentials: true
 
       - name: Create Atlas scaffold
         run: |
           mkdir -p app
-          cat > app/__init__.py <<'PY'
-          # Atlas package init
-          PY
+          printf "# Atlas package init\n" > app/__init__.py
           cat > app/config.py <<'PY'
           import os
-
           def _need(name: str) -> str:
               v = os.getenv(name)
               if not v:
                   raise RuntimeError(f"Missing env var: {name}")
               return v
-
           SUPABASE_URL = _need("SUPABASE_URL")
           SUPABASE_ANON_KEY = _need("SUPABASE_ANON_KEY")
           OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
           PY
-          cat > app/atlas.py <<'PY'
-          def hello(name: str = "D") -> str:
-              return f"Atlas online. Ready to work, {name}."
-          PY
-          cat > app/cli.py <<'PY'
-          from app.atlas import hello
-
-          if __name__ == "__main__":
-              print(hello())
-          PY
-
+          printf "def hello(name: str = 'D'):\n    return f'Atlas online. Ready to work, {name}.'\n" > app/atlas.py
+          printf "from app.atlas import hello\n\nif __name__ == '__main__':\n    print(hello())\n" > app/cli.py
           cat > requirements.txt <<'TXT'
           supabase
           python-dotenv
           openai
           TXT
-
           cat > .env.example <<'ENV'
           SUPABASE_URL=https://YOUR-PROJECT.supabase.co
           SUPABASE_ANON_KEY=ey...
           OPENAI_API_KEY=sk-...
           ENV
 
-          if [ -f README.md ]; then
-            cat >> README.md <<'MD'
-
-          ## Quickstart
-
-          1. Copy `.env.example` to `.env` and fill your keys.
-          2. Install deps:
-             ```
-             pip install -r requirements.txt
-             ```
-          3. Run CLI:
-             ```
-             python -m app.cli
-             ```
-          MD
-          else
-            cat > README.md <<'MD'
-            # Atlas
-
-            Personal AI assistant (Jarvis-style) with Python + Supabase.
-
-            ## Quickstart
-            1. Copy `.env.example` to `.env` and fill your keys.
-            2. Install deps:
-               ```
-               pip install -r requirements.txt
-               ```
-            3. Run CLI:
-               ```
-               python -m app.cli
-               ```
-            MD
-          fi
-
-      - name: Commit scaffold
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git config user.name "atlas-agent"
-          git config user.email "atlas@users.noreply.github.com"
-          git add -A
-          git commit -m "chore: scaffold Atlas app structure"
-          git push
+      - name: Commit & push changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: scaffold Atlas app structure"
