@@ -15,11 +15,9 @@ jobs:
       - name: Add features (Supabase client, Profiles, Notes)
         run: |
           mkdir -p app/profiles app/notes migrations
-          # ---- Supabase client
           cat > app/supabase_client.py <<'PY'
           import os
           from supabase import create_client, Client
-
           def get_client() -> Client:
               url = os.getenv("SUPABASE_URL")
               key = os.getenv("SUPABASE_ANON_KEY")
@@ -27,47 +25,38 @@ jobs:
                   raise RuntimeError("Missing SUPABASE_URL or SUPABASE_ANON_KEY")
               return create_client(url, key)
           PY
-          # ---- Profiles
           cat > app/profiles/__init__.py <<'PY'
           from .service import ProfilesService
           PY
           cat > app/profiles/service.py <<'PY'
           from typing import Optional, Dict, Any
           from app.supabase_client import get_client
-
           class ProfilesService:
               def __init__(self):
                   self.db = get_client()
-
               def upsert(self, user_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
                   res = self.db.table("profiles").upsert({"id": user_id, **data}).execute()
                   return (res.data or [{}])[0]
-
               def get(self, user_id: str) -> Optional[Dict[str, Any]]:
                   res = self.db.table("profiles").select("*").eq("id", user_id).single().execute()
                   return getattr(res, "data", None)
           PY
-          # ---- Notes
           cat > app/notes/__init__.py <<'PY'
           from .service import NotesService
           PY
           cat > app/notes/service.py <<'PY'
           from typing import Dict, Any, List
           from app.supabase_client import get_client
-
           class NotesService:
               def __init__(self):
                   self.db = get_client()
-
               def add(self, user_id: str, text: str) -> Dict[str, Any]:
-                  res = self.db.table("notes").insert({"user_id": user_id, "text": text}).execute()
+                  res=self.db.table("notes").insert({"user_id":user_id,"text":text}).execute()
                   return (res.data or [{}])[0]
-
               def list(self, user_id: str) -> List[Dict[str, Any]]:
-                  res = self.db.table("notes").select("*").eq("user_id", user_id).order("created_at").execute()
+                  res=self.db.table("notes").select("*").eq("user_id",user_id).order("created_at").execute()
                   return res.data or []
           PY
-          # ---- Migrations
           mkdir -p migrations
           cat > migrations/001_profiles.sql <<'SQL'
           create table if not exists public.profiles (
@@ -94,44 +83,31 @@ jobs:
           from app.atlas import hello
           from app.notes import NotesService
           from app.profiles import ProfilesService
-
           app = FastAPI(title="Atlas API")
-
           @app.get("/health")
-          def health():
-              return {"ok": True}
-
+          def health(): return {"ok": True}
           @app.get("/hello")
-          def greet(name: str = "D"):
-              return {"message": hello(name)}
-
+          def greet(name: str = "D"): return {"message": hello(name)}
           @app.post("/notes/add")
           def add_note(user_id: str, text: str = Body(..., embed=True)):
               return NotesService().add(user_id, text)
-
           @app.get("/notes/list")
           def list_notes(user_id: str):
               return {"items": NotesService().list(user_id)}
-
           @app.post("/profiles/upsert")
           def upsert_profile(user_id: str, display_name: str = Body(None), avatar_url: str = Body(None)):
               data = {"display_name": display_name, "avatar_url": avatar_url}
               return ProfilesService().upsert(user_id, data)
-
           @app.get("/profiles/get")
           def get_profile(user_id: str):
               return ProfilesService().get(user_id)
           PY
-
           cat > app/api/run.py <<'PY'
           import os, uvicorn
           from app.api import app
-
           if __name__ == "__main__":
-              uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", "8000")))
+              uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT","8000")))
           PY
-
-          # extend requirements
           awk '1; END{print "fastapi\nuvicorn"}' requirements.txt > r.tmp && mv r.tmp requirements.txt
 
       - name: Add tests, tooling (pytest, ruff, black, mypy) and CI
@@ -139,30 +115,21 @@ jobs:
           mkdir -p tests
           cat > tests/test_hello.py <<'PY'
           from app.atlas import hello
-          def test_hello():
-              assert "Atlas online" in hello("D")
+          def test_hello(): assert "Atlas online" in hello("D")
           PY
-
-          # configs
           cat > pyproject.toml <<'TOML'
           [tool.black]
           line-length = 100
           target-version = ["py311"]
-
           [tool.ruff]
           line-length = 100
-
           [tool.pytest.ini_options]
           addopts = "-q"
           TOML
-
-          # ci workflow
           mkdir -p .github/workflows
           cat > .github/workflows/ci.yml <<'YML'
           name: CI
-          on:
-            push:
-            pull_request:
+          on: { push: {}, pull_request: {} }
           jobs:
             test:
               runs-on: ubuntu-latest
@@ -183,9 +150,8 @@ jobs:
             print "\n## How to run locally"
             print "1) Create .env from .env.example and fill keys."
             print "2) pip install -r requirements.txt"
-            print "3) API: python -m app.api.run  (open http://localhost:8000/health)"
-            print "\n## Database migrations"
-            print "Run in Supabase SQL Editor:"
+            print "3) API: python -m app.api.run  (http://localhost:8000/health)"
+            print "\n## Database migrations (run in Supabase SQL Editor)"
             print "- migrations/001_profiles.sql"
             print "- migrations/002_notes.sql"
           }' README.md > README.tmp && mv README.tmp README.md
