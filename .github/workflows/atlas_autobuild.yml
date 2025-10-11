@@ -4,6 +4,7 @@ on:
 
 permissions:
   contents: write
+  workflows: write
 
 jobs:
   build_everything:
@@ -142,6 +143,7 @@ jobs:
               assert "Atlas online" in hello("D")
           PY
 
+          # configs
           cat > pyproject.toml <<'TOML'
           [tool.black]
           line-length = 100
@@ -154,6 +156,7 @@ jobs:
           addopts = "-q"
           TOML
 
+          # ci workflow
           mkdir -p .github/workflows
           cat > .github/workflows/ci.yml <<'YML'
           name: CI
@@ -191,3 +194,4 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "feat: autobuild profiles, notes, API, tooling, and CI"
+          token: ${{ secrets.WORKFLOW_TOKEN }}
