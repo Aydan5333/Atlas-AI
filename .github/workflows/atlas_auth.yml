@@ -1,0 +1,52 @@
+name: Atlas Auth
+on: { workflow_dispatch: {} }
+permissions: { contents: write }
+
+jobs:
+  add_auth:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Add JWT auth module + endpoints
+        run: |
+          mkdir -p app/auth
+          cat > app/auth/__init__.py <<'PY'
+          from .jwt import create_token, verify_token
+          PY
+          cat > app/auth/jwt.py <<'PY'
+          import os, time, jwt
+          SECRET = os.getenv("JWT_SECRET", "dev-secret-change-me")
+          ALG = "HS256"
+          def create_token(user_id: str, ttl_seconds: int = 3600) -> str:
+              now = int(time.time())
+              payload = {"sub": user_id, "iat": now, "exp": now + ttl_seconds}
+              return jwt.encode(payload, SECRET, algorithm=ALG)
+          def verify_token(token: str) -> str:
+              data = jwt.decode(token, SECRET, algorithms=[ALG])
+              return data["sub"]
+          PY
+
+          # Add dependency
+          awk '1; END{print "pyjwt"}' requirements.txt > r.tmp && mv r.tmp requirements.txt
+
+          # Extend API with /auth/token and /auth/whoami
+          awk '1; END{
+            print "\nfrom fastapi import Header, HTTPException"
+            print "from app.auth import create_token, verify_token"
+            print "\n@app.post(\"/auth/token\")"
+            print "def issue_token(user_id: str):"
+            print "    return {\"token\": create_token(user_id)}"
+            print "\n@app.get(\"/auth/whoami\")"
+            print "def whoami(authorization: str = Header(None)):"
+            print "    if not authorization or not authorization.lower().startswith(\"bearer \"):"
+            print "        raise HTTPException(status_code=401, detail=\"Missing Bearer token\")"
+            print "    uid = verify_token(authorization.split()[1])"
+            print "    return {\"user_id\": uid}"
+          }' app/api/__init__.py > app/api/__init__.py.tmp && mv app/api/__init__.py.tmp app/api/__init__.py
+
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}
+        with:
+          commit_message: "feat: add JWT auth module and /auth endpoints"
