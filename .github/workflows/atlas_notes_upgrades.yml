@@ -1,0 +1,32 @@
+name: Atlas Notes Upgrades
+on: { workflow_dispatch: {} }
+permissions: { contents: write }
+jobs:
+  notes_upgrades:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extend Notes service + API
+        run: |
+          awk '1; END{
+            print "\n    def search(self, user_id: str, q: str):"
+            print "        res = self.db.table(\"notes\").select(\"*\").eq(\"user_id\", user_id).ilike(\"text\", f\"%{q}%\").execute()"
+            print "        return res.data or []"
+            print "\n    def delete(self, note_id: int):"
+            print "        self.db.table(\"notes\").delete().eq(\"id\", note_id).execute()"
+            print "        return {\"ok\": True}"
+          }' app/notes/service.py > app/notes/service.py.tmp && mv app/notes/service.py.tmp app/notes/service.py
+
+          awk '1; END{
+            print "\n@app.get(\"/notes/search\")"
+            print "def search_notes(user_id: str, q: str):"
+            print "    from app.notes import NotesService"
+            print "    return {\"items\": NotesService().search(user_id, q)}"
+            print "\n@app.delete(\"/notes/delete\")"
+            print "def delete_note(note_id: int):"
+            print "    from app.notes import NotesService"
+            print "    return NotesService().delete(note_id)"
+          }' app/api/__init__.py > app/api/__init__.py.tmp && mv app/api/__init__.py.tmp app/api/__init__.py
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        env: { GITHUB_TOKEN: ${{ secrets.WORKFLOW_TOKEN }} }
+        with: { commit_message: "feat: notes search & delete endpoints" }
