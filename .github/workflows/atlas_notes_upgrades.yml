@@ -1,32 +1,55 @@
 name: Atlas Notes Upgrades
-on: { workflow_dispatch: {} }
-permissions: { contents: write }
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
 jobs:
   notes_upgrades:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Extend Notes service + API
-        run: |
-          awk '1; END{
-            print "\n    def search(self, user_id: str, q: str):"
-            print "        res = self.db.table(\"notes\").select(\"*\").eq(\"user_id\", user_id).ilike(\"text\", f\"%{q}%\").execute()"
-            print "        return res.data or []"
-            print "\n    def delete(self, note_id: int):"
-            print "        self.db.table(\"notes\").delete().eq(\"id\", note_id).execute()"
-            print "        return {\"ok\": True}"
-          }' app/notes/service.py > app/notes/service.py.tmp && mv app/notes/service.py.tmp app/notes/service.py
 
-          awk '1; END{
-            print "\n@app.get(\"/notes/search\")"
-            print "def search_notes(user_id: str, q: str):"
-            print "    from app.notes import NotesService"
-            print "    return {\"items\": NotesService().search(user_id, q)}"
-            print "\n@app.delete(\"/notes/delete\")"
-            print "def delete_note(note_id: int):"
-            print "    from app.notes import NotesService"
-            print "    return NotesService().delete(note_id)"
-          }' app/api/__init__.py > app/api/__init__.py.tmp && mv app/api/__init__.py.tmp app/api/__init__.py
-      - uses: stefanzweifel/git-auto-commit-action@v5
-        env: { GITHUB_TOKEN: ${{ secrets.WORKFLOW_TOKEN }} }
-        with: { commit_message: "feat: notes search & delete endpoints" }
+      - name: Add search/delete helpers and endpoints (no in-place edits)
+        run: |
+          # Helper that talks to Supabase directly
+          mkdir -p app/notes
+          cat > app/notes/search_delete.py <<'PY'
+          from typing import List, Dict, Any
+          from app.supabase_client import get_client
+
+          def search_notes(user_id: str, q: str) -> List[Dict[str, Any]]:
+              db = get_client()
+              # ilike -> case-insensitive substring match
+              res = db.table("notes").select("*").eq("user_id", user_id).ilike("text", f"%{q}%").execute()
+              return res.data or []
+
+          def delete_note(note_id: int) -> Dict[str, Any]:
+              db = get_client()
+              db.table("notes").delete().eq("id", note_id).execute()
+              return {"ok": True}
+          PY
+
+          # Endpoints file that imports the existing FastAPI app and registers routes
+          mkdir -p app/api
+          cat > app/api/notes_extra_endpoints.py <<'PY'
+          from fastapi import Query
+          from app.api import app  # imports the already-created FastAPI app
+          from app.notes.search_delete import search_notes, delete_note
+
+          @app.get("/notes/search")
+          def api_search_notes(user_id: str = Query(...), q: str = Query(...)):
+              return {"items": search_notes(user_id, q)}
+
+          @app.delete("/notes/delete")
+          def api_delete_note(note_id: int = Query(...)):
+              return delete_note(note_id)
+          PY
+
+      - name: Commit changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}
+        with:
+          commit_message: "feat: add notes search & delete endpoints via standalone module"
