@@ -1,0 +1,40 @@
+name: Atlas Scheduler
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  add_scheduler:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Add scheduler jobs + endpoint (no in-place edits)
+        run: |
+          mkdir -p app/scheduler app/api
+
+          # Simple job
+          cat > app/scheduler/jobs.py <<'PY'
+          import datetime as dt
+          def hourly_heartbeat() -> str:
+              return f"Atlas heartbeat {dt.datetime.utcnow().isoformat()}Z"
+          PY
+
+          # Endpoint file that registers with the existing FastAPI app
+          cat > app/api/scheduler_endpoints.py <<'PY'
+          from app.api import app
+          from app.scheduler.jobs import hourly_heartbeat
+
+          @app.post("/jobs/heartbeat")
+          def jobs_heartbeat():
+              return {"message": hourly_heartbeat()}
+          PY
+
+      - name: Commit changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}
+        with:
+          commit_message: "feat: add scheduler job and /jobs/heartbeat endpoint"
