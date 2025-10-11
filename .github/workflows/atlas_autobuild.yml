@@ -3,7 +3,7 @@ on:
   workflow_dispatch: {}
 
 permissions:
-  contents: write  # leave workflows OUT of here
+  contents: write
 
 jobs:
   build_everything:
@@ -90,7 +90,7 @@ jobs:
           def health(): return {"ok": True}
           @app.get("/hello")
           def greet(name: str = "D"): return {"message": hello(name)}
-          @app.post("/notes/add")
+          @app/post("/notes/add")
           def add_note(user_id: str, text: str = Body(..., embed=True)):
               return NotesService().add(user_id, text)
           @app.get("/notes/list")
@@ -119,7 +119,6 @@ jobs:
           from app.atlas import hello
           def test_hello(): assert "Atlas online" in hello("D")
           PY
-
           cat > pyproject.toml <<'TOML'
           [tool.black]
           line-length = 100
@@ -129,7 +128,6 @@ jobs:
           [tool.pytest.ini_options]
           addopts = "-q"
           TOML
-
           mkdir -p .github/workflows
           cat > .github/workflows/ci.yml <<'YML'
           name: CI
@@ -162,6 +160,7 @@ jobs:
 
       - name: Commit all changes
         uses: stefanzweifel/git-auto-commit-action@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}   # <-- pass PAT via env
         with:
           commit_message: "feat: autobuild profiles, notes, API, tooling, and CI"
-          token: ${{ secrets.WORKFLOW_TOKEN }}
