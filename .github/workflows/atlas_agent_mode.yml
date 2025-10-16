@@ -3,71 +3,66 @@ name: Atlas Agent Mode
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 */6 * * *"   # every 6 hours (UTC)
+    - cron: "0 */6 * * *"
 
 permissions:
   contents: write
 
-# Export secrets to env so we can safely reference them in `if:` conditions
 env:
   BASE_API: ${{ secrets.RENDER_API_URL }}
-  VERCEL_HOOK_URL: ${{ secrets.VERCEL_HOOK_URL }}   # optional
-  RENDER_HOOK_URL: ${{ secrets.RENDER_HOOK_URL }}   # optional
+  VERCEL_HOOK_URL: ${{ secrets.VERCEL_HOOK_URL }}
+  RENDER_HOOK_URL: ${{ secrets.RENDER_HOOK_URL }}
   TEST_USER_ID: "00000000-0000-0000-0000-000000000000"
 
 jobs:
   health_check:
-    name: Health check API
     runs-on: ubuntu-latest
+    name: Health check API
     steps:
       - uses: actions/checkout@v4
-
-      - name: Show config (no secrets shown)
+      - name: Show config (safe)
         run: |
-          echo "Render API URL present: $([[ -n "${BASE_API}" ]] && echo yes || echo no)"
-          echo "Vercel hook present: $([[ -n "${VERCEL_HOOK_URL}" ]] && echo yes || echo no)"
-          echo "Render hook present: $([[ -n "${RENDER_HOOK_URL}" ]] && echo yes || echo no)"
+          echo "Render API URL present: $([[ -n \"$BASE_API\" ]] && echo yes || echo no)"
+          echo "Vercel hook present: $([[ -n \"$VERCEL_HOOK_URL\" ]] && echo yes || echo no)"
+          echo "Render hook present: $([[ -n \"$RENDER_HOOK_URL\" ]] && echo yes || echo no)"
 
       - name: GET /health (must be ok:true)
         run: |
           set -e
-          echo "Checking ${BASE_API}/health"
-          RES=$(curl -sS -w "\n%{http_code}" "${BASE_API}/health")
+          echo "Checking $BASE_API/health"
+          RES=$(curl -sS -w "\n%{http_code}" "$BASE_API/health")
           BODY=$(echo "$RES" | head -n1)
           CODE=$(echo "$RES" | tail -n1)
           echo "HTTP $CODE  Body: $BODY"
-          # require 2xx and ok:true in body
           [ "$CODE" -ge 200 ] && [ "$CODE" -lt 300 ] && echo "$BODY" | grep -q '"ok": *true'
 
   warm_endpoints:
-    name: Warm common endpoints
     runs-on: ubuntu-latest
     needs: health_check
+    name: Warm endpoints
     steps:
       - name: Warm /hello and /notes/list
         run: |
-          set -e
-          curl -sS "${BASE_API}/hello?name=Atlas" >/dev/null
-          curl -sS "${BASE_API}/notes/list?user_id=${TEST_USER_ID}" >/dev/null
+          curl -sS "$BASE_API/hello?name=Atlas" >/dev/null
+          curl -sS "$BASE_API/notes/list?user_id=$TEST_USER_ID" >/dev/null
           echo "Endpoints warmed."
 
   measure_and_record:
-    name: Measure latency & record heartbeat
     runs-on: ubuntu-latest
     needs: warm_endpoints
+    name: Measure latency & record heartbeat
     steps:
       - uses: actions/checkout@v4
-
       - name: Measure response times
         id: times
         run: |
-          hello_t=$(curl -s -o /dev/null -w "%{time_total}" "${BASE_API}/hello?name=Atlas")
-          list_t=$(curl -s -o /dev/null -w "%{time_total}" "${BASE_API}/notes/list?user_id=${TEST_USER_ID}")
-          echo "hello_time=${hello_t}" >> $GITHUB_OUTPUT
-          echo "list_time=${list_t}" >> $GITHUB_OUTPUT
+          hello_t=$(curl -s -o /dev/null -w "%{time_total}" "$BASE_API/hello?name=Atlas")
+          list_t=$(curl -s -o /dev/null -w "%{time_total}" "$BASE_API/notes/list?user_id=$TEST_USER_ID")
+          echo "hello_time=$hello_t" >> $GITHUB_OUTPUT
+          echo "list_time=$list_t" >> $GITHUB_OUTPUT
           echo "Hello: $hello_t s"; echo "Notes list: $list_t s"
 
-      - name: Write .atlas/last_agent_run.json
+      - name: Write heartbeat
         run: |
           mkdir -p .atlas
           cat > .atlas/last_agent_run.json <<JSON
@@ -88,19 +83,23 @@ jobs:
           file_pattern: .atlas/last_agent_run.json
 
   trigger_vercel:
-    name: Trigger Vercel redeploy (optional)
     runs-on: ubuntu-latest
     needs: measure_and_record
-    if: env.VERCEL_HOOK_URL != ''
+    name: Trigger Vercel redeploy (optional)
     steps:
-      - name: POST Vercel hook
-        run: curl -fsSL -X POST "${VERCEL_HOOK_URL}"
+      - name: Trigger only if hook exists
+        if: ${{ env.VERCEL_HOOK_URL != '' }}
+        run: |
+          echo "Triggering Vercel deploy..."
+          curl -fsSL -X POST "$VERCEL_HOOK_URL" || echo "No Vercel hook set, skipping."
 
   trigger_render:
-    name: Trigger Render redeploy (optional)
     runs-on: ubuntu-latest
     needs: measure_and_record
-    if: env.RENDER_HOOK_URL != ''
+    name: Trigger Render redeploy (optional)
     steps:
-      - name: POST Render hook
-        run: curl -fsSL -X POST "${RENDER_HOOK_URL}"
+      - name: Trigger only if hook exists
+        if: ${{ env.RENDER_HOOK_URL != '' }}
+        run: |
+          echo "Triggering Render deploy..."
+          curl -fsSL -X POST "$RENDER_HOOK_URL" || echo "No Render hook set, skipping."
