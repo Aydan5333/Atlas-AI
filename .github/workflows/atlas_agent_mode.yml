@@ -1,71 +1,106 @@
 name: Atlas Agent Mode
 
 on:
-  workflow_dispatch:        # run it anytime
+  workflow_dispatch:
   schedule:
-    - cron: "0 */6 * * *"   # optional: every 6 hours (UTC)
+    - cron: "0 */6 * * *"   # every 6 hours (UTC)
 
 permissions:
   contents: write
 
+# Export secrets to env so we can safely reference them in `if:` conditions
+env:
+  BASE_API: ${{ secrets.RENDER_API_URL }}
+  VERCEL_HOOK_URL: ${{ secrets.VERCEL_HOOK_URL }}   # optional
+  RENDER_HOOK_URL: ${{ secrets.RENDER_HOOK_URL }}   # optional
+  TEST_USER_ID: "00000000-0000-0000-0000-000000000000"
+
 jobs:
-  sanity_check:
-    name: Sanity check API
+  health_check:
+    name: Health check API
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Show config summary
+      - name: Show config (no secrets shown)
         run: |
-          echo "Render API URL: ${RENDER_API_URL:-<missing>}"
-          echo "Vercel hook set: $([[ -n "${VERCEL_HOOK_URL}" ]] && echo yes || echo no)"
-          echo "Render hook set: $([[ -n "${RENDER_HOOK_URL}" ]] && echo yes || echo no)"
-        env:
-          RENDER_API_URL: ${{ secrets.RENDER_API_URL }}
-          VERCEL_HOOK_URL: ${{ secrets.VERCEL_URL }}   # keep for reference; real hook below
-          RENDER_HOOK_URL: ${{ secrets.RENDER_HOOK_URL }}
+          echo "Render API URL present: $([[ -n "${BASE_API}" ]] && echo yes || echo no)"
+          echo "Vercel hook present: $([[ -n "${VERCEL_HOOK_URL}" ]] && echo yes || echo no)"
+          echo "Render hook present: $([[ -n "${RENDER_HOOK_URL}" ]] && echo yes || echo no)"
 
-      - name: Health probe
-        env:
-          BASE: ${{ secrets.RENDER_API_URL }}
+      - name: GET /health (must be ok:true)
         run: |
           set -e
-          echo "GET $BASE/health"
-          code=$(curl -s -o /tmp/health.json -w "%{http_code}" "$BASE/health")
-          cat /tmp/health.json || true
-          if [ "$code" -lt 200 ] || [ "$code" -ge 400 ]; then
-            echo "Health check failed with HTTP $code"
-            exit 1
-          fi
+          echo "Checking ${BASE_API}/health"
+          RES=$(curl -sS -w "\n%{http_code}" "${BASE_API}/health")
+          BODY=$(echo "$RES" | head -n1)
+          CODE=$(echo "$RES" | tail -n1)
+          echo "HTTP $CODE  Body: $BODY"
+          # require 2xx and ok:true in body
+          [ "$CODE" -ge 200 ] && [ "$CODE" -lt 300 ] && echo "$BODY" | grep -q '"ok": *true'
 
   warm_endpoints:
-    name: Warm endpoints (best-effort)
+    name: Warm common endpoints
     runs-on: ubuntu-latest
-    needs: sanity_check
+    needs: health_check
     steps:
-      - name: Warm calls
-        env:
-          BASE: ${{ secrets.RENDER_API_URL }}
+      - name: Warm /hello and /notes/list
         run: |
-          set +e
-          curl -sS "$BASE/hello?name=Atlas" >/dev/null
-          curl -sS "$BASE/notes/list?user_id=00000000-0000-0000-0000-000000000000" >/dev/null
-          echo "Warmed common routes."
+          set -e
+          curl -sS "${BASE_API}/hello?name=Atlas" >/dev/null
+          curl -sS "${BASE_API}/notes/list?user_id=${TEST_USER_ID}" >/dev/null
+          echo "Endpoints warmed."
 
-  redeploy_vercel:
+  measure_and_record:
+    name: Measure latency & record heartbeat
+    runs-on: ubuntu-latest
+    needs: warm_endpoints
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Measure response times
+        id: times
+        run: |
+          hello_t=$(curl -s -o /dev/null -w "%{time_total}" "${BASE_API}/hello?name=Atlas")
+          list_t=$(curl -s -o /dev/null -w "%{time_total}" "${BASE_API}/notes/list?user_id=${TEST_USER_ID}")
+          echo "hello_time=${hello_t}" >> $GITHUB_OUTPUT
+          echo "list_time=${list_t}" >> $GITHUB_OUTPUT
+          echo "Hello: $hello_t s"; echo "Notes list: $list_t s"
+
+      - name: Write .atlas/last_agent_run.json
+        run: |
+          mkdir -p .atlas
+          cat > .atlas/last_agent_run.json <<JSON
+          {
+            "timestamp": "$(date -Is)",
+            "results": {
+              "hello_time_s": "${{ steps.times.outputs.hello_time }}",
+              "notes_list_time_s": "${{ steps.times.outputs.list_time }}"
+            }
+          }
+          JSON
+          cat .atlas/last_agent_run.json
+
+      - name: Commit heartbeat
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore(agent): patrol heartbeat"
+          file_pattern: .atlas/last_agent_run.json
+
+  trigger_vercel:
     name: Trigger Vercel redeploy (optional)
     runs-on: ubuntu-latest
-    needs: sanity_check
-    if: ${{ secrets.VERCEL_HOOK_URL != '' }}
+    needs: measure_and_record
+    if: env.VERCEL_HOOK_URL != ''
     steps:
-      - name: POST Vercel deploy hook
-        run: curl -fsSL -X POST "${{ secrets.VERCEL_HOOK_URL }}"
+      - name: POST Vercel hook
+        run: curl -fsSL -X POST "${VERCEL_HOOK_URL}"
 
-  redeploy_render:
+  trigger_render:
     name: Trigger Render redeploy (optional)
     runs-on: ubuntu-latest
-    needs: sanity_check
-    if: ${{ secrets.RENDER_HOOK_URL != '' }}
+    needs: measure_and_record
+    if: env.RENDER_HOOK_URL != ''
     steps:
-      - name: POST Render deploy hook
-        run: curl -fsSL -X POST "${{ secrets.RENDER_HOOK_URL }}"
+      - name: POST Render hook
+        run: curl -fsSL -X POST "${RENDER_HOOK_URL}"
