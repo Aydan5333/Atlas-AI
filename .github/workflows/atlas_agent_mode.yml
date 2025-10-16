@@ -3,16 +3,15 @@ name: Atlas Agent Mode
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 */6 * * *"   # every 6 hours (UTC)
+    - cron: "0 */6 * * *"
 
 permissions:
   contents: write
 
-# Secrets exposed to env for use in steps and conditions
 env:
-  BASE_API: ${{ secrets.RENDER_API_URL }}         # may be empty; preflight will normalize/fallback
-  VERCEL_HOOK_URL: ${{ secrets.VERCEL_HOOK_URL }} # optional
-  RENDER_HOOK_URL: ${{ secrets.RENDER_HOOK_URL }} # optional
+  BASE_API: ${{ secrets.RENDER_API_URL }}
+  VERCEL_HOOK_URL: ${{ secrets.VERCEL_HOOK_URL }}
+  RENDER_HOOK_URL: ${{ secrets.RENDER_HOOK_URL }}
   TEST_USER_ID: "00000000-0000-0000-0000-000000000000"
 
 jobs:
@@ -22,31 +21,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # ✅ UPDATED: validates secret, trims spaces/CRLF, adds https:// if missing,
-      # uses repo "Variables" as backup, and finally falls back to the public URL.
       - name: Preflight – validate BASE_API
         run: |
           set -e
-          # Prefer secret; allow repo variable as backup.
           RAW="${BASE_API:-${{ vars.RENDER_API_URL }}}"
-
           if [ -z "$RAW" ]; then
-            echo "::warning::No RENDER_API_URL secret/variable found; using public default."
+            echo "::warning::No RENDER_API_URL secret/variable found; using default."
             RAW="https://atlas-ai-4nqq.onrender.com"
           fi
-
-          # Trim CR/LF and trailing spaces
           RAW="$(printf "%s" "$RAW" | tr -d '\r' | sed 's/[[:space:]]\+$//')"
-
-          # Auto-prefix scheme if host-only was provided
           if ! echo "$RAW" | grep -Eiq '^https?://'; then
             RAW="https://$RAW"
           fi
-
-          # Normalize (remove trailing slash)
           RAW="${RAW%/}"
-
-          # Export for later steps
           echo "BASE_API=$RAW" >> "$GITHUB_ENV"
           echo "API set."
 
@@ -56,11 +43,11 @@ jobs:
           echo "Vercel hook present: $([[ -n \"$VERCEL_HOOK_URL\" ]] && echo yes || echo no)"
           echo "Render hook present: $([[ -n \"$RENDER_HOOK_URL\" ]] && echo yes || echo no)"
 
-      - name: GET /health (must be ok:true)
+      - name: GET /api/health (must be ok:true)
         run: |
           set -e
-          echo "Checking $BASE_API/health"
-          RES=$(curl -sS -w "\n%{http_code}" "$BASE_API/health")
+          echo "Checking $BASE_API/api/health"
+          RES=$(curl -sS -w "\n%{http_code}" "$BASE_API/api/health")
           BODY=$(echo "$RES" | head -n1)
           CODE=$(echo "$RES" | tail -n1)
           echo "HTTP $CODE  Body: $BODY"
@@ -71,10 +58,10 @@ jobs:
     needs: health_check
     name: Warm endpoints
     steps:
-      - name: Warm /hello and /notes/list
+      - name: Warm /api/hello and /api/notes/list
         run: |
-          curl -sS "$BASE_API/hello?name=Atlas" >/dev/null
-          curl -sS "$BASE_API/notes/list?user_id=$TEST_USER_ID" >/dev/null
+          curl -sS "$BASE_API/api/hello?name=Atlas" >/dev/null
+          curl -sS "$BASE_API/api/notes/list?user_id=$TEST_USER_ID" >/dev/null
           echo "Endpoints warmed."
 
   measure_and_record:
@@ -87,8 +74,8 @@ jobs:
       - name: Measure response times
         id: times
         run: |
-          hello_t=$(curl -s -o /dev/null -w "%{time_total}" "$BASE_API/hello?name=Atlas")
-          list_t=$(curl -s -o /dev/null -w "%{time_total}" "$BASE_API/notes/list?user_id=$TEST_USER_ID")
+          hello_t=$(curl -s -o /dev/null -w "%{time_total}" "$BASE_API/api/hello?name=Atlas")
+          list_t=$(curl -s -o /dev/null -w "%{time_total}" "$BASE_API/api/notes/list?user_id=$TEST_USER_ID")
           echo "hello_time=$hello_t" >> $GITHUB_OUTPUT
           echo "list_time=$list_t" >> $GITHUB_OUTPUT
           echo "Hello: $hello_t s"; echo "Notes list: $list_t s"
