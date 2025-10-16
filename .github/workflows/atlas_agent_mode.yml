@@ -3,12 +3,13 @@ name: Atlas Agent Mode
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 */6 * * *"
+    - cron: "0 */6 * * *"   # every 6 hours (UTC)
 
 permissions:
   contents: write
 
 env:
+  # Secrets may be empty; preflight will normalize and fallback.
   BASE_API: ${{ secrets.RENDER_API_URL }}
   VERCEL_HOOK_URL: ${{ secrets.VERCEL_HOOK_URL }}
   RENDER_HOOK_URL: ${{ secrets.RENDER_HOOK_URL }}
@@ -21,47 +22,72 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Preflight – validate BASE_API
+      # Normalize API base URL and save to $GITHUB_ENV
+      - name: Preflight – normalize BASE_API
         run: |
           set -e
           RAW="${BASE_API:-${{ vars.RENDER_API_URL }}}"
           if [ -z "$RAW" ]; then
-            echo "::warning::No RENDER_API_URL secret/variable found; using default."
+            echo "::warning::No RENDER_API_URL secret/variable; using default."
             RAW="https://atlas-ai-4nqq.onrender.com"
           fi
           RAW="$(printf "%s" "$RAW" | tr -d '\r' | sed 's/[[:space:]]\+$//')"
-          if ! echo "$RAW" | grep -Eiq '^https?://'; then
-            RAW="https://$RAW"
-          fi
+          if ! echo "$RAW" | grep -Eiq '^https?://'; then RAW="https://$RAW"; fi
           RAW="${RAW%/}"
           echo "BASE_API=$RAW" >> "$GITHUB_ENV"
-          echo "API set."
+          echo "Using API base (masked)."
 
-      - name: Show config (safe)
-        run: |
-          echo "Render API URL present: $([[ -n \"$BASE_API\" ]] && echo yes || echo no)"
-          echo "Vercel hook present: $([[ -n \"$VERCEL_HOOK_URL\" ]] && echo yes || echo no)"
-          echo "Render hook present: $([[ -n \"$RENDER_HOOK_URL\" ]] && echo yes || echo no)"
-
-      - name: GET /api/health (must be ok:true)
+      # 🔎 NEW: Try common health paths and pick the first that returns ok:true
+      - name: Discover health path
+        id: probe
         run: |
           set -e
-          echo "Checking $BASE_API/api/health"
-          RES=$(curl -sS -w "\n%{http_code}" "$BASE_API/api/health")
+          CANDIDATES="/api/health /health /v1/health /api/v1/health /atlas/health"
+          FOUND=""
+          for P in $CANDIDATES; do
+            URL="$BASE_API$P"
+            RES=$(curl -sS -w "\n%{http_code}" "$URL" || true)
+            BODY=$(echo "$RES" | head -n1)
+            CODE=$(echo "$RES" | tail -n1)
+            echo "Tried $URL -> HTTP $CODE"
+            if [ "$CODE" -ge 200 ] && [ "$CODE" -lt 300 ] && echo "$BODY" | grep -q '"ok":[[:space:]]*true'; then
+              FOUND="$P"
+              break
+            fi
+          done
+          if [ -z "$FOUND" ]; then
+            echo "::error::Could not locate a health endpoint returning {\"ok\": true}. Tried: $CANDIDATES"
+            exit 1
+          fi
+          echo "Health path discovered: $FOUND"
+          echo "HEALTH_PATH=$FOUND" >> "$GITHUB_ENV"
+          # Derive prefix (e.g., '/api') to reuse for other routes
+          PREFIX="${FOUND%/health}"
+          echo "API_PREFIX=$PREFIX" >> "$GITHUB_ENV"
+
+      - name: GET health (must be ok:true)
+        run: |
+          set -e
+          echo "Checking $BASE_API$HEALTH_PATH"
+          RES=$(curl -sS -w "\n%{http_code}" "$BASE_API$HEALTH_PATH")
           BODY=$(echo "$RES" | head -n1)
           CODE=$(echo "$RES" | tail -n1)
           echo "HTTP $CODE  Body: $BODY"
-          [ "$CODE" -ge 200 ] && [ "$CODE" -lt 300 ] && echo "$BODY" | grep -q '"ok": *true'
+          [ "$CODE" -ge 200 ] && [ "$CODE" -lt 300 ] && echo "$BODY" | grep -q '"ok":[[:space:]]*true'
 
   warm_endpoints:
     runs-on: ubuntu-latest
     needs: health_check
     name: Warm endpoints
     steps:
-      - name: Warm /api/hello and /api/notes/list
+      - name: Warm hello & notes list
         run: |
-          curl -sS "$BASE_API/api/hello?name=Atlas" >/dev/null
-          curl -sS "$BASE_API/api/notes/list?user_id=$TEST_USER_ID" >/dev/null
+          HELLO="$BASE_API$API_PREFIX/hello?name=Atlas"
+          LIST="$BASE_API$API_PREFIX/notes/list?user_id=$TEST_USER_ID"
+          echo "Warming: $HELLO"
+          curl -sS "$HELLO" >/dev/null || true
+          echo "Warming: $LIST"
+          curl -sS "$LIST" >/dev/null || true
           echo "Endpoints warmed."
 
   measure_and_record:
@@ -74,8 +100,10 @@ jobs:
       - name: Measure response times
         id: times
         run: |
-          hello_t=$(curl -s -o /dev/null -w "%{time_total}" "$BASE_API/api/hello?name=Atlas")
-          list_t=$(curl -s -o /dev/null -w "%{time_total}" "$BASE_API/api/notes/list?user_id=$TEST_USER_ID")
+          HELLO="$BASE_API$API_PREFIX/hello?name=Atlas"
+          LIST="$BASE_API$API_PREFIX/notes/list?user_id=$TEST_USER_ID"
+          hello_t=$(curl -s -o /dev/null -w "%{time_total}" "$HELLO" || echo "NaN")
+          list_t=$(curl -s -o /dev/null -w "%{time_total}" "$LIST" || echo "NaN")
           echo "hello_time=$hello_t" >> $GITHUB_OUTPUT
           echo "list_time=$list_t" >> $GITHUB_OUTPUT
           echo "Hello: $hello_t s"; echo "Notes list: $list_t s"
@@ -88,7 +116,10 @@ jobs:
             "timestamp": "$(date -Is)",
             "results": {
               "hello_time_s": "${{ steps.times.outputs.hello_time }}",
-              "notes_list_time_s": "${{ steps.times.outputs.list_time }}"
+              "notes_list_time_s": "${{ steps.times.outputs.list_time }}",
+              "base_api": "masked",
+              "health_path": "${HEALTH_PATH}",
+              "api_prefix": "${API_PREFIX}"
             }
           }
           JSON
