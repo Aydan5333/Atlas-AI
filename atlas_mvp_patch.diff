@@ -1,0 +1,725 @@
+diff -ruN repo_original/Atlas-AI-main/.github/workflows/atlas_agent.yml repo/Atlas-AI-main/.github/workflows/atlas_agent.yml
+--- repo_original/Atlas-AI-main/.github/workflows/atlas_agent.yml	1970-01-01 00:00:00.000000000 +0000
++++ repo/Atlas-AI-main/.github/workflows/atlas_agent.yml	2025-10-16 09:01:08.815807582 +0000
+@@ -0,0 +1,77 @@
++name: Atlas Agent
++
++on:
++  workflow_dispatch:
++  schedule:
++    # run every 6 hours (UTC)
++    - cron: "0 */6 * * *"
++
++permissions:
++  contents: write
++
++jobs:
++  patrol:
++    runs-on: ubuntu-latest
++    steps:
++      - uses: actions/checkout@v4
++
++      # Health check the Render API. Fail the workflow if the API is down.
++      - name: Health check
++        env:
++          API: ${{ secrets.RENDER_API_URL }}
++        run: |
++          set -e
++          echo "Checking $API/health"
++          RES=$(curl -sS -w "\n%{http_code}" "$API/health")
++          BODY=$(echo "$RES" | head -n1)
++          CODE=$(echo "$RES" | tail -n1)
++          echo "Status: $CODE Body: $BODY"
++          echo "$BODY" | grep -q '"ok": true'
++
++      # Warm a couple of endpoints. Non‑blocking, but logs timings.
++      - name: Warm endpoints
++        env:
++          API: ${{ secrets.RENDER_API_URL }}
++        run: |
++          set -e
++          curl -sS "$API/hello" > /dev/null
++          curl -sS "$API/notes/list?user_id=test" > /dev/null
++
++      # Measure response times for common endpoints and echo them.
++      - name: Measure response times
++        env:
++          API: ${{ secrets.RENDER_API_URL }}
++        run: |
++          set -e
++          hello_time=$(curl -o /dev/null -s -w "%{time_total}" "$API/hello")
++          notes_time=$(curl -o /dev/null -s -w "%{time_total}" "$API/notes/list?user_id=test")
++          echo "hello_time=$hello_time"
++          echo "notes_list_time=$notes_time"
++          echo "{\"hello\": $hello_time, \"notes_list\": $notes_time}" > /tmp/agent_metrics.json
++
++      # Write the last run timestamp and metrics into the repo under .atlas/last_agent_run.json
++      - name: Update last agent run file
++        run: |
++          set -e
++          mkdir -p .atlas
++          timestamp=$(date -Is)
++          metrics="{}"
++          if [ -f /tmp/agent_metrics.json ]; then
++            metrics=$(cat /tmp/agent_metrics.json)
++          fi
++          echo "{\"timestamp\": \"$timestamp\", \"metrics\": $metrics}" > .atlas/last_agent_run.json
++
++      # Commit the updated last run file back to the repository.
++      - name: Commit heartbeat
++        uses: stefanzweifel/git-auto-commit-action@v5
++        with:
++          commit_message: "chore(agent): patrol heartbeat"
++          file_pattern: .atlas/last_agent_run.json
++          # Use the provided workflow token to authenticate the push
++          token: ${{ secrets.WORKFLOW_TOKEN }}
++
++      # Optionally trigger a Vercel redeploy if a deploy hook URL is provided.
++      - name: Trigger Vercel redeploy
++        if: ${{ secrets.VERCEL_DEPLOY_HOOK_URL != '' }}
++        run: |
++          curl -fsSL -X POST "${{ secrets.VERCEL_DEPLOY_HOOK_URL }}"
+\ No newline at end of file
+diff -ruN repo_original/Atlas-AI-main/.github/workflows/ci.yml repo/Atlas-AI-main/.github/workflows/ci.yml
+--- repo_original/Atlas-AI-main/.github/workflows/ci.yml	2025-10-12 05:11:20.000000000 +0000
++++ repo/Atlas-AI-main/.github/workflows/ci.yml	2025-10-16 09:00:55.767890936 +0000
+@@ -1,4 +1,5 @@
+ name: CI
++
+ on:
+   push:
+   pull_request:
+@@ -8,7 +9,39 @@
+     runs-on: ubuntu-latest
+     steps:
+       - uses: actions/checkout@v4
++
++      # Set up Python for backend checks
+       - uses: actions/setup-python@v5
+         with:
+           python-version: "3.11"
+-      - run: echo "Temporarily skipping format & tests; CI active ✅"
++
++      # Install tooling for Python formatting and linting. These tools are
++      # lightweight and should complete quickly.
++      - name: Install Python dependencies
++        run: |
++          python -m pip install --upgrade pip
++          pip install black ruff mypy pytest
++
++      - name: Run black (formatting)
++        run: black --check .
++
++      - name: Run ruff (linting)
++        run: ruff check .
++
++      - name: Run mypy (type checking)
++        # Allow mypy to fail without failing the workflow by always returning 0.
++        run: |
++          mypy app || true
++
++      - name: Run pytest (tests)
++        # Allow tests to fail without failing the workflow by always returning 0.
++        run: |
++          pytest -q || true
++
++      # Set up Node for frontend Prettier check
++      - uses: actions/setup-node@v4
++        with:
++          node-version: "20"
++
++      - name: Run Prettier (frontend formatting)
++        run: npx prettier --check "frontend/**/*.{js,jsx,ts,tsx,css,md}"
+Binary files repo_original/Atlas-AI-main/app/__pycache__/__init__.cpython-311.pyc and repo/Atlas-AI-main/app/__pycache__/__init__.cpython-311.pyc differ
+Binary files repo_original/Atlas-AI-main/app/__pycache__/atlas.cpython-311.pyc and repo/Atlas-AI-main/app/__pycache__/atlas.cpython-311.pyc differ
+Binary files repo_original/Atlas-AI-main/app/__pycache__/cli.cpython-311.pyc and repo/Atlas-AI-main/app/__pycache__/cli.cpython-311.pyc differ
+Binary files repo_original/Atlas-AI-main/app/__pycache__/config.cpython-311.pyc and repo/Atlas-AI-main/app/__pycache__/config.cpython-311.pyc differ
+Binary files repo_original/Atlas-AI-main/app/__pycache__/supabase_client.cpython-311.pyc and repo/Atlas-AI-main/app/__pycache__/supabase_client.cpython-311.pyc differ
+diff -ruN repo_original/Atlas-AI-main/app/api/__init__.py repo/Atlas-AI-main/app/api/__init__.py
+--- repo_original/Atlas-AI-main/app/api/__init__.py	2025-10-12 05:11:20.000000000 +0000
++++ repo/Atlas-AI-main/app/api/__init__.py	2025-10-16 08:59:06.340615872 +0000
+@@ -38,6 +38,26 @@
+ def list_notes(user_id: str):
+     return {"items": NotesService().list(user_id)}
+ 
++# ---- Notes search and delete
++@app.get("/notes/search")
++def search_notes(user_id: str, q: str):
++    """Search notes for a user by query string.
++
++    Returns a list of notes whose ``text`` field contains ``q`` (case‑insensitive).
++    """
++    items = NotesService().search(user_id, q)
++    return {"items": items}
++
++
++@app.post("/notes/delete")
++def delete_note(note_id: int = Body(..., embed=True)):
++    """Delete a note by ID.
++
++    Returns ``{"ok": True}`` if the note existed and was deleted; otherwise ``{"ok": False}``.
++    """
++    ok = NotesService().delete(note_id)
++    return {"ok": ok}
++
+ # ---- Profiles
+ @app.post("/profiles/upsert")
+ def upsert_profile(user_id: str, display_name: str = Body(None), avatar_url: str = Body(None)):
+Binary files repo_original/Atlas-AI-main/app/api/__pycache__/__init__.cpython-311.pyc and repo/Atlas-AI-main/app/api/__pycache__/__init__.cpython-311.pyc differ
+Binary files repo_original/Atlas-AI-main/app/api/__pycache__/run.cpython-311.pyc and repo/Atlas-AI-main/app/api/__pycache__/run.cpython-311.pyc differ
+Binary files repo_original/Atlas-AI-main/app/notes/__pycache__/__init__.cpython-311.pyc and repo/Atlas-AI-main/app/notes/__pycache__/__init__.cpython-311.pyc differ
+Binary files repo_original/Atlas-AI-main/app/notes/__pycache__/service.cpython-311.pyc and repo/Atlas-AI-main/app/notes/__pycache__/service.cpython-311.pyc differ
+diff -ruN repo_original/Atlas-AI-main/app/notes/service.py repo/Atlas-AI-main/app/notes/service.py
+--- repo_original/Atlas-AI-main/app/notes/service.py	2025-10-12 05:11:20.000000000 +0000
++++ repo/Atlas-AI-main/app/notes/service.py	2025-10-16 08:58:58.160669300 +0000
+@@ -12,3 +12,41 @@
+     def list(self, user_id: str) -> List[Dict[str, Any]]:
+         res = self.db.table("notes").select("*").eq("user_id", user_id).order("created_at").execute()
+         return res.data or []
++
++    def search(self, user_id: str, q: str) -> List[Dict[str, Any]]:
++        """Search notes by user ID and query string.
++
++        Performs a case‑insensitive search on the ``text`` column using
++        Supabase's ``ilike`` operator and orders results by ``created_at``.
++
++        Args:
++            user_id: The ID of the user whose notes to search.
++            q: The query string to match within the note text.
++
++        Returns:
++            A list of note dictionaries matching the query.
++        """
++        # Use ilike for case-insensitive partial matching. Surround q with `%` for wildcard search.
++        pattern = f"%{q}%"
++        res = (
++            self.db.table("notes")
++            .select("*")
++            .eq("user_id", user_id)
++            .ilike("text", pattern)
++            .order("created_at")
++            .execute()
++        )
++        return res.data or []
++
++    def delete(self, note_id: int) -> bool:
++        """Delete a note by its ID.
++
++        Args:
++            note_id: Primary key of the note to remove.
++
++        Returns:
++            ``True`` if a record was deleted, ``False`` otherwise.
++        """
++        res = self.db.table("notes").delete().eq("id", note_id).execute()
++        # Supabase returns data for deleted rows; if no rows were deleted, data will be empty.
++        return bool(res.data)
+Binary files repo_original/Atlas-AI-main/app/profiles/__pycache__/__init__.cpython-311.pyc and repo/Atlas-AI-main/app/profiles/__pycache__/__init__.cpython-311.pyc differ
+Binary files repo_original/Atlas-AI-main/app/profiles/__pycache__/service.cpython-311.pyc and repo/Atlas-AI-main/app/profiles/__pycache__/service.cpython-311.pyc differ
+diff -ruN repo_original/Atlas-AI-main/frontend/lib/api.js repo/Atlas-AI-main/frontend/lib/api.js
+--- repo_original/Atlas-AI-main/frontend/lib/api.js	1970-01-01 00:00:00.000000000 +0000
++++ repo/Atlas-AI-main/frontend/lib/api.js	2025-10-16 08:59:35.204426208 +0000
+@@ -0,0 +1,75 @@
++/*
++ * Small client for interacting with the Atlas API from the frontend.
++ *
++ * Each helper wraps `fetch` and returns parsed JSON. Errors will
++ * propagate to the caller via thrown exceptions, allowing pages to
++ * handle them appropriately.
++ */
++
++const BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "";
++
++async function j(res) {
++  if (!res.ok) {
++    const text = await res.text();
++    throw new Error(`${res.status} ${res.statusText}: ${text}`);
++  }
++  return res.json();
++}
++
++export async function apiHealth() {
++  const res = await fetch(`${BASE}/health`, { cache: "no-store" });
++  return j(res);
++}
++
++export async function listNotes(userId) {
++  const url = new URL(`${BASE}/notes/list`);
++  url.searchParams.set("user_id", userId);
++  const res = await fetch(url, { cache: "no-store" });
++  return j(res);
++}
++
++export async function addNote(userId, text) {
++  const url = new URL(`${BASE}/notes/add`);
++  url.searchParams.set("user_id", userId);
++  const res = await fetch(url, {
++    method: "POST",
++    headers: { "Content-Type": "application/json" },
++    body: JSON.stringify({ text }),
++  });
++  return j(res);
++}
++
++export async function searchNotes(userId, q) {
++  const url = new URL(`${BASE}/notes/search`);
++  url.searchParams.set("user_id", userId);
++  url.searchParams.set("q", q);
++  const res = await fetch(url, { cache: "no-store" });
++  return j(res);
++}
++
++export async function deleteNote(noteId) {
++  const res = await fetch(`${BASE}/notes/delete`, {
++    method: "POST",
++    headers: { "Content-Type": "application/json" },
++    body: JSON.stringify({ note_id: noteId }),
++  });
++  return j(res);
++}
++
++export async function getProfile(userId) {
++  const url = new URL(`${BASE}/profiles/get`);
++  url.searchParams.set("user_id", userId);
++  const res = await fetch(url, { cache: "no-store" });
++  return j(res);
++}
++
++export async function upsertProfile(userId, data) {
++  const url = new URL(`${BASE}/profiles/upsert`);
++  url.searchParams.set("user_id", userId);
++  const res = await fetch(url, {
++    method: "POST",
++    headers: { "Content-Type": "application/json" },
++    body: JSON.stringify(data),
++  });
++  return j(res);
++}
+diff -ruN repo_original/Atlas-AI-main/frontend/package.json repo/Atlas-AI-main/frontend/package.json
+--- repo_original/Atlas-AI-main/frontend/package.json	2025-10-12 05:11:20.000000000 +0000
++++ repo/Atlas-AI-main/frontend/package.json	2025-10-16 09:00:45.799957136 +0000
+@@ -10,5 +10,10 @@
+     "next": "14.2.5",
+     "react": "18.2.0",
+     "react-dom": "18.2.0"
++  },
++  "devDependencies": {
++    "tailwindcss": "^3.4.0",
++    "postcss": "^8.4.31",
++    "autoprefixer": "^10.4.16"
+   }
+ }
+diff -ruN repo_original/Atlas-AI-main/frontend/pages/_app.jsx repo/Atlas-AI-main/frontend/pages/_app.jsx
+--- repo_original/Atlas-AI-main/frontend/pages/_app.jsx	1970-01-01 00:00:00.000000000 +0000
++++ repo/Atlas-AI-main/frontend/pages/_app.jsx	2025-10-16 08:59:25.736488640 +0000
+@@ -0,0 +1,12 @@
++import "../styles/globals.css";
++
++/**
++ * Custom App component used by Next.js.
++ *
++ * It wraps every page so we can import global CSS once. We don't
++ * customise pageProps here, but we keep this file to ensure Tailwind
++ * styles apply across pages.
++ */
++export default function MyApp({ Component, pageProps }) {
++  return <Component {...pageProps} />;
++}
+diff -ruN repo_original/Atlas-AI-main/frontend/pages/index.jsx repo/Atlas-AI-main/frontend/pages/index.jsx
+--- repo_original/Atlas-AI-main/frontend/pages/index.jsx	2025-10-12 05:11:20.000000000 +0000
++++ repo/Atlas-AI-main/frontend/pages/index.jsx	2025-10-16 09:00:04.368235189 +0000
+@@ -1,23 +1,186 @@
+-import { useEffect, useState } from "react";
++import { useState, useEffect } from "react";
++import {
++  apiHealth,
++  listNotes,
++  addNote,
++  searchNotes,
++  deleteNote,
++} from "../lib/api";
+ 
+-export default function Home() {
+-  const [status, setStatus] = useState("...");
++/**
++ * Atlas dashboard home page.
++ *
++ * Displays API health and a simple notes interface allowing users to
++ * create, list, search and delete their notes. A default user ID is
++ * used for demonstration; in a full application this would come from
++ * authenticated user context.
++ */
++export default function Dashboard() {
++  const [health, setHealth] = useState(null);
++  const [notes, setNotes] = useState([]);
++  const [newText, setNewText] = useState("");
++  const [search, setSearch] = useState("");
++  const [results, setResults] = useState([]);
++  const [loading, setLoading] = useState(false);
++
++  // For now we hardcode a user ID. Replace with real auth in future.
++  const userId = "demo-user";
+ 
+   useEffect(() => {
+-    const base = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+-    fetch(base + "/health")
+-      .then(r => r.json())
+-      .then(d => setStatus(d.ok ? "OK" : "Fail"))
+-      .catch(() => setStatus("Error"));
++    apiHealth()
++      .then((d) => setHealth(d.ok))
++      .catch(() => setHealth(false));
++    refreshNotes();
++    // eslint-disable-next-line react-hooks/exhaustive-deps
+   }, []);
+ 
++  async function refreshNotes() {
++    try {
++      const data = await listNotes(userId);
++      setNotes(data.items);
++    } catch (err) {
++      console.error(err);
++    }
++  }
++
++  async function handleAdd() {
++    const text = newText.trim();
++    if (!text) return;
++    setLoading(true);
++    try {
++      await addNote(userId, text);
++      setNewText("");
++      await refreshNotes();
++    } catch (err) {
++      console.error(err);
++    } finally {
++      setLoading(false);
++    }
++  }
++
++  async function handleSearch() {
++    const q = search.trim();
++    if (!q) {
++      setResults([]);
++      return;
++    }
++    setLoading(true);
++    try {
++      const data = await searchNotes(userId, q);
++      setResults(data.items);
++    } catch (err) {
++      console.error(err);
++    } finally {
++      setLoading(false);
++    }
++  }
++
++  async function handleDelete(id) {
++    setLoading(true);
++    try {
++      await deleteNote(id);
++      await refreshNotes();
++      if (search.trim()) {
++        await handleSearch();
++      }
++    } catch (err) {
++      console.error(err);
++    } finally {
++      setLoading(false);
++    }
++  }
++
+   return (
+-    <main style={{ padding: 20, fontFamily: "system-ui, sans-serif" }}>
+-      <h1>Atlas Dashboard</h1>
+-      <p>API health: <b>{status}</b></p>
+-      <p style={{opacity:.7, fontSize:14}}>
+-        Using: <code>NEXT_PUBLIC_API_BASE_URL</code>
++    <div className="p-8 space-y-6 font-sans">
++      <h1 className="text-2xl font-bold">Atlas Dashboard</h1>
++      <p>
++        API health: {health === null ? "…" : health ? <b>OK</b> : <b>FAIL</b>}
++      </p>
++      <p className="text-sm opacity-70">
++        Using <code>NEXT_PUBLIC_API_BASE_URL</code> = {
++          process.env.NEXT_PUBLIC_API_BASE_URL || "(not set)"
++        }
+       </p>
+-    </main>
++      <section className="border rounded-lg p-4 shadow bg-white">
++        <h2 className="text-xl font-semibold mb-4">Quick Notes</h2>
++        {/* Add note */}
++        <div className="flex space-x-2 mb-4">
++          <input
++            type="text"
++            className="flex-1 border rounded px-2 py-1"
++            placeholder="Enter a new note..."
++            value={newText}
++            onChange={(e) => setNewText(e.target.value)}
++            onKeyDown={(e) => {
++              if (e.key === "Enter") handleAdd();
++            }}
++          />
++          <button
++            onClick={handleAdd}
++            className="bg-blue-600 text-white px-3 py-1 rounded disabled:opacity-50"
++            disabled={loading || !newText.trim()}
++          >
++            Add
++          </button>
++        </div>
++        {/* Notes list */}
++        <div>
++          <h3 className="font-medium mb-2">Your notes</h3>
++          {notes.length === 0 ? (
++            <p className="text-sm italic text-gray-500">No notes yet.</p>
++          ) : (
++            <ul className="space-y-1">
++              {notes.map((note) => (
++                <li
++                  key={note.id}
++                  className="flex justify-between items-center border-b py-1 last:border-b-0"
++                >
++                  <span>{note.text}</span>
++                  <button
++                    onClick={() => handleDelete(note.id)}
++                    className="text-red-600 text-sm hover:underline"
++                  >
++                    Delete
++                  </button>
++                </li>
++              ))}
++            </ul>
++          )}
++        </div>
++        {/* Search notes */}
++        <div className="mt-4">
++          <h3 className="font-medium mb-1">Search</h3>
++          <div className="flex space-x-2">
++            <input
++              type="text"
++              className="flex-1 border rounded px-2 py-1"
++              placeholder="Search notes..."
++              value={search}
++              onChange={(e) => setSearch(e.target.value)}
++              onKeyDown={(e) => {
++                if (e.key === "Enter") handleSearch();
++              }}
++            />
++            <button
++              onClick={handleSearch}
++              className="bg-gray-600 text-white px-3 py-1 rounded disabled:opacity-50"
++              disabled={loading || !search.trim()}
++            >
++              Search
++            </button>
++          </div>
++          {results.length > 0 && (
++            <div className="mt-2">
++              <h4 className="font-medium">Results</h4>
++              <ul className="list-disc list-inside space-y-1">
++                {results.map((note) => (
++                  <li key={note.id}>{note.text}</li>
++                ))}
++              </ul>
++            </div>
++          )}
++        </div>
++      </section>
++    </div>
+   );
+ }
+diff -ruN repo_original/Atlas-AI-main/frontend/pages/profile.jsx repo/Atlas-AI-main/frontend/pages/profile.jsx
+--- repo_original/Atlas-AI-main/frontend/pages/profile.jsx	1970-01-01 00:00:00.000000000 +0000
++++ repo/Atlas-AI-main/frontend/pages/profile.jsx	2025-10-16 09:00:16.520156144 +0000
+@@ -0,0 +1,77 @@
++import { useEffect, useState } from "react";
++import { getProfile, upsertProfile } from "../lib/api";
++
++/**
++ * Profile management page.
++ *
++ * Allows a user to view and edit their display name and avatar URL. Changes
++ * are persisted via the backend's profile upsert endpoint. For the MVP we
++ * use a hardcoded user ID; replace with authenticated user context later.
++ */
++export default function ProfilePage() {
++  const userId = "demo-user";
++  const [displayName, setDisplayName] = useState("");
++  const [avatarUrl, setAvatarUrl] = useState("");
++  const [status, setStatus] = useState("");
++
++  useEffect(() => {
++    async function load() {
++      try {
++        const data = await getProfile(userId);
++        if (data) {
++          setDisplayName(data.display_name || "");
++          setAvatarUrl(data.avatar_url || "");
++        }
++      } catch (err) {
++        console.error(err);
++      }
++    }
++    load();
++  }, [userId]);
++
++  async function handleSave() {
++    try {
++      await upsertProfile(userId, {
++        display_name: displayName || null,
++        avatar_url: avatarUrl || null,
++      });
++      setStatus("Profile updated");
++    } catch (err) {
++      console.error(err);
++      setStatus("Error saving profile");
++    }
++  }
++
++  return (
++    <div className="p-8 space-y-6 font-sans">
++      <h1 className="text-2xl font-bold">Profile</h1>
++      <div className="max-w-md space-y-4">
++        <div>
++          <label className="block font-medium mb-1">Display name</label>
++          <input
++            type="text"
++            className="border rounded w-full px-2 py-1"
++            value={displayName}
++            onChange={(e) => setDisplayName(e.target.value)}
++          />
++        </div>
++        <div>
++          <label className="block font-medium mb-1">Avatar URL</label>
++          <input
++            type="text"
++            className="border rounded w-full px-2 py-1"
++            value={avatarUrl}
++            onChange={(e) => setAvatarUrl(e.target.value)}
++          />
++        </div>
++        <button
++          onClick={handleSave}
++          className="bg-blue-600 text-white px-4 py-2 rounded"
++        >
++          Save
++        </button>
++        {status && <p className="text-sm text-green-700">{status}</p>}
++      </div>
++    </div>
++  );
++}
+diff -ruN repo_original/Atlas-AI-main/frontend/pages/scheduler.jsx repo/Atlas-AI-main/frontend/pages/scheduler.jsx
+--- repo_original/Atlas-AI-main/frontend/pages/scheduler.jsx	1970-01-01 00:00:00.000000000 +0000
++++ repo/Atlas-AI-main/frontend/pages/scheduler.jsx	2025-10-16 09:00:33.644039142 +0000
+@@ -0,0 +1,61 @@
++import { useEffect, useState } from "react";
++
++/**
++ * Scheduler page.
++ *
++ * Displays the timestamp of the last agent patrol run and provides a link
++ * to manually trigger the workflow in GitHub Actions. The patrol job
++ * writes its results into `.atlas/last_agent_run.json` in the repo; we
++ * fetch that file from GitHub's raw content server.
++ */
++export default function SchedulerPage() {
++  const [info, setInfo] = useState(null);
++
++  useEffect(() => {
++    async function load() {
++      try {
++        const url =
++          "https://raw.githubusercontent.com/Aydan5333/Atlas-AI/main/.atlas/last_agent_run.json";
++        const res = await fetch(url, { cache: "no-store" });
++        if (res.ok) {
++          const data = await res.json();
++          setInfo(data);
++        }
++      } catch (err) {
++        console.error(err);
++      }
++    }
++    load();
++  }, []);
++
++  return (
++    <div className="p-8 space-y-6 font-sans">
++      <h1 className="text-2xl font-bold">Scheduler</h1>
++      <div className="border rounded p-4 bg-white shadow max-w-md">
++        <h2 className="text-xl font-semibold mb-2">Last agent run</h2>
++        {info ? (
++          <div className="space-y-1 text-sm">
++            <p>
++              <span className="font-medium">Timestamp:</span> {info.timestamp}
++            </p>
++            {info.metrics && (
++              <pre className="bg-gray-100 p-2 rounded text-xs overflow-x-auto">
++{JSON.stringify(info.metrics, null, 2)}
++              </pre>
++            )}
++          </div>
++        ) : (
++          <p className="text-sm italic text-gray-600">Never run.</p>
++        )}
++        <a
++          href="https://github.com/Aydan5333/Atlas-AI/actions/workflows/atlas_agent.yml"
++          target="_blank"
++          rel="noopener noreferrer"
++          className="inline-block mt-4 bg-blue-600 text-white px-4 py-2 rounded"
++        >
++          Run agent now
++        </a>
++      </div>
++    </div>
++  );
++}
+diff -ruN repo_original/Atlas-AI-main/frontend/postcss.config.js repo/Atlas-AI-main/frontend/postcss.config.js
+--- repo_original/Atlas-AI-main/frontend/postcss.config.js	1970-01-01 00:00:00.000000000 +0000
++++ repo/Atlas-AI-main/frontend/postcss.config.js	2025-10-16 08:59:17.600542130 +0000
+@@ -0,0 +1,12 @@
++/**
++ * PostCSS configuration for Tailwind CSS.
++ *
++ * This file registers Tailwind CSS and Autoprefixer so that Next.js
++ * can compile our CSS with the appropriate vendor prefixes.
++ */
++module.exports = {
++  plugins: {
++    tailwindcss: {},
++    autoprefixer: {},
++  },
++};
+diff -ruN repo_original/Atlas-AI-main/frontend/styles/globals.css repo/Atlas-AI-main/frontend/styles/globals.css
+--- repo_original/Atlas-AI-main/frontend/styles/globals.css	1970-01-01 00:00:00.000000000 +0000
++++ repo/Atlas-AI-main/frontend/styles/globals.css	2025-10-16 08:59:22.092512460 +0000
+@@ -0,0 +1,8 @@
++/*
++ * Global styles for the Atlas frontend.
++ *
++ * Tailwind's directives inject base styles, component styles and utilities.
++ */
++@tailwind base;
++@tailwind components;
++@tailwind utilities;
+diff -ruN repo_original/Atlas-AI-main/frontend/tailwind.config.js repo/Atlas-AI-main/frontend/tailwind.config.js
+--- repo_original/Atlas-AI-main/frontend/tailwind.config.js	1970-01-01 00:00:00.000000000 +0000
++++ repo/Atlas-AI-main/frontend/tailwind.config.js	2025-10-16 08:59:12.484575489 +0000
+@@ -0,0 +1,16 @@
++/**
++ * Tailwind CSS configuration for the Atlas frontend.
++ *
++ * This configuration enables Tailwind to scan our pages and component
++ * directories for class names and generate the appropriate styles.
++ */
++module.exports = {
++  content: [
++    "./pages/**/*.{js,jsx,ts,tsx}",
++    "./components/**/*.{js,jsx,ts,tsx}",
++  ],
++  theme: {
++    extend: {},
++  },
++  plugins: [],
++};
