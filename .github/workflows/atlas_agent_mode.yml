@@ -3,15 +3,16 @@ name: Atlas Agent Mode
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 */6 * * *"
+    - cron: "0 */6 * * *"   # every 6 hours (UTC)
 
 permissions:
   contents: write
 
+# Secrets exposed to env for use in steps and conditions
 env:
-  BASE_API: ${{ secrets.RENDER_API_URL }}
-  VERCEL_HOOK_URL: ${{ secrets.VERCEL_HOOK_URL }}
-  RENDER_HOOK_URL: ${{ secrets.RENDER_HOOK_URL }}
+  BASE_API: ${{ secrets.RENDER_API_URL }}         # may be empty; preflight will normalize/fallback
+  VERCEL_HOOK_URL: ${{ secrets.VERCEL_HOOK_URL }} # optional
+  RENDER_HOOK_URL: ${{ secrets.RENDER_HOOK_URL }} # optional
   TEST_USER_ID: "00000000-0000-0000-0000-000000000000"
 
 jobs:
@@ -20,6 +21,35 @@ jobs:
     name: Health check API
     steps:
       - uses: actions/checkout@v4
+
+      # ✅ UPDATED: validates secret, trims spaces/CRLF, adds https:// if missing,
+      # uses repo "Variables" as backup, and finally falls back to the public URL.
+      - name: Preflight – validate BASE_API
+        run: |
+          set -e
+          # Prefer secret; allow repo variable as backup.
+          RAW="${BASE_API:-${{ vars.RENDER_API_URL }}}"
+
+          if [ -z "$RAW" ]; then
+            echo "::warning::No RENDER_API_URL secret/variable found; using public default."
+            RAW="https://atlas-ai-4nqq.onrender.com"
+          fi
+
+          # Trim CR/LF and trailing spaces
+          RAW="$(printf "%s" "$RAW" | tr -d '\r' | sed 's/[[:space:]]\+$//')"
+
+          # Auto-prefix scheme if host-only was provided
+          if ! echo "$RAW" | grep -Eiq '^https?://'; then
+            RAW="https://$RAW"
+          fi
+
+          # Normalize (remove trailing slash)
+          RAW="${RAW%/}"
+
+          # Export for later steps
+          echo "BASE_API=$RAW" >> "$GITHUB_ENV"
+          echo "API set."
+
       - name: Show config (safe)
         run: |
           echo "Render API URL present: $([[ -n \"$BASE_API\" ]] && echo yes || echo no)"
@@ -53,6 +83,7 @@ jobs:
     name: Measure latency & record heartbeat
     steps:
       - uses: actions/checkout@v4
+
       - name: Measure response times
         id: times
         run: |
