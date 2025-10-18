@@ -2,21 +2,74 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Theme tokens */
 :root{
-  --ink:#0a0a0a;
+  --ink:#0b0b0c;
+  --ink-2:#121214;
+  --ink-3:#1a1b1e;
   --ivory:#f7f7f5;
+  --ivory-2:#d7d7d2;
   --gold:#bfa26a;
+  --muted:#8b8b93;
+  --ring: 0 0 0 2px rgba(191,162,106,.35);
 }
-.bg-ink{ background:var(--ink) }
-.text-ivory{ color:var(--ivory) }
-.text-gold{ color:var(--gold) }
+
+*{ box-sizing:border-box }
+html,body,#__next{ height:100% }
+body{
+  margin:0;
+  background: radial-gradient(1200px 600px at 20% -10%, #16171a 0%, var(--ink) 60%) fixed;
+  color: var(--ivory);
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial, "Apple Color Emoji","Segoe UI Emoji";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Reusable UI atoms */
+.container-xx{
+  @apply max-w-6xl mx-auto px-4 sm:px-6 lg:px-8;
+}
+
+.card{
+  background: linear-gradient(180deg, var(--ink-2), var(--ink-3));
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 16px;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.03) inset,
+    0 10px 30px rgba(0,0,0,.35);
+}
 
 .tile{
-  @apply bg-white/5 border border-white/10 rounded-lg p-4 shadow-sm;
+  @apply card p-5 md:p-6 transition-transform;
 }
+.tile:hover{ transform: translateY(-2px) }
+
 .btn{
-  @apply px-3 py-2 rounded bg-white/10 hover:bg-white/20 transition;
+  @apply inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium;
+  background: #1f2024;
+  border: 1px solid rgba(255,255,255,.08);
+}
+.btn:hover{ box-shadow: var(--ring) }
+.btn-primary{
+  background: linear-gradient(180deg,#2a2b31,#1e1f25);
+  border-color: rgba(191,162,106,.35);
+  color: var(--ivory);
 }
 .input{
-  @apply px-3 py-2 rounded bg-white/10 border border-white/10 outline-none w-full;
+  @apply w-full rounded-lg bg-[#14151a] border border-[#2a2b31] px-3 py-2 text-sm;
+  color: var(--ivory);
 }
+.label{ @apply text-xs uppercase tracking-wider text-[var(--muted)] }
+.kicker{ @apply text-xs text-[var(--muted)] }
+.h1{
+  @apply text-3xl md:text-4xl font-semibold tracking-tight;
+  letter-spacing:-.02em;
+}
+
+/* Nice focus ring */
+:focus-visible{ outline:none; box-shadow: var(--ring) }
+
+/* Status pills */
+.pill{ @apply inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium border }
+.pill-ok{ border-color: #1f6f45; background:#0e2f22; color:#8ff0b0 }
+.pill-bad{ border-color: #7f2d2d; background:#2b1214; color:#ff9b9b }
