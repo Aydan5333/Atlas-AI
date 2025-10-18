@@ -1,3 +1,14 @@
+export const BASE = (process.env.NEXT_PUBLIC_API_BASE_URL || "").replace(/\/+$/,"");
+
+export async function apiHealth(){
+  try{
+    const r = await fetch(`${BASE}/health`, { cache:"no-store" });
+    if (r.ok) return r.json();
+  }catch{}
+  const r2 = await fetch(`${BASE}/api/health`, { cache:"no-store" }).catch(()=>null);
+  if (!r2 || !r2.ok) return { ok:false };
+  return r2.json();
+}
 // Keep this file in plain JS.
 export const BASE = (process.env.NEXT_PUBLIC_API_BASE_URL || "").replace(/\/+$/, "");
 
