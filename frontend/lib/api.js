@@ -6,7 +6,7 @@ async function j(res) {
   return await res.json();
 }
 
-// Health: try /health then /api/health
+// Health (try both)
 export async function apiHealth() {
   try {
     return await j(await fetch(`${BASE}/health`, { cache: "no-store" }));
