@@ -1,7 +1,13 @@
-export default function Tile({ title, children }) {
+export default function Tile({ title, subtitle, children, right }) {
   return (
     <section className="tile">
-      <h2 className="font-semibold mb-2 text-gold">{title}</h2>
+      <div className="flex items-center justify-between mb-3">
+        <div>
+          <div className="kicker">{subtitle}</div>
+          <h3 className="text-base md:text-lg font-semibold tracking-tight">{title}</h3>
+        </div>
+        {right}
+      </div>
       {children}
     </section>
   );
