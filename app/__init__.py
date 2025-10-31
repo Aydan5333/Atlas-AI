@@ -1,17 +1,7 @@
-# app/api/__init__.py (additions)
-from fastapi import APIRouter
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI
+from app.api import router as api_router
 
-router = APIRouter()
+app = FastAPI(title="Atlas API", version="1.0")
 
-@router.get("/")
-def welcome():
-    return {"service": "atlas-api", "docs": "/docs", "health": "/health"}
-
-@router.get("/health")
-def health():
-    return {"ok": True}
-
-# keep existing /api/health if you already have it
-# Mount router
-app.include_router(router)
+# Register API router
+app.include_router(api_router)
