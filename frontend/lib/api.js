@@ -54,3 +54,41 @@ export async function upsertProfile(payload) {
     })
   );
 }
+// --- compatibility exports for Notes page ---
+
+// keep existing createNote but also export it as addNote
+export const addNote = createNote;
+
+// try server-side search first; if 404/unsupported, fall back to simple client filter
+export async function searchNotes(user_id, q = "") {
+  const url = new URL(`${BASE}/notes/search`);
+  url.searchParams.set("user_id", user_id);
+  if (q) url.searchParams.set("q", q);
+
+  try {
+    const r = await fetch(url, { cache: "no-store" });
+    if (r.ok) return r.json();
+  } catch {}
+
+  // fallback: fetch all + filter
+  const all = await listNotes(user_id).catch(() => []);
+  const qq = q.toLowerCase();
+  return all.filter(
+    (n) =>
+      (n.title && n.title.toLowerCase().includes(qq)) ||
+      (n.body && n.body.toLowerCase().includes(qq))
+  );
+}
+
+// server delete if available; otherwise return { ok:false } gracefully
+export async function deleteNote(id) {
+  try {
+    const r = await fetch(`${BASE}/notes/delete`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    if (r.ok) return r.json();
+  } catch {}
+  return { ok: false };
+}
