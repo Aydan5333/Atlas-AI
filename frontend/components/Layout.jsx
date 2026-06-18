@@ -17,6 +17,7 @@ export default function Layout({ children }) {
         </div>
         <nav className="p-3 space-y-1">
           <NavLink href="/">🏠 Dashboard</NavLink>
+          <NavLink href="/hud">🥽 HUD</NavLink>
           <NavLink href="/architect">🧭 Architect</NavLink>
           <NavLink href="/notes">📝 Notes</NavLink>
           <NavLink href="/profile">🙍 Profile</NavLink>
