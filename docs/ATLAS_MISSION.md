@@ -47,6 +47,14 @@ Atlas should track the practical business work:
 - merch and services
 - contacts and follow-ups
 
+## Adaptability principle
+
+Atlas must be able to adapt as the family, TSC, technology, education goals, events, sponsors, and property plans change.
+
+Adaptability does not mean chaos. Atlas should evolve through reviewed updates, versioned docs, clear task backlogs, and human approval instead of random tool decisions.
+
+The system should support new agents, tools, academy tracks, event formats, and hardware layers over time while keeping the mission and privacy rules stable.
+
 ## North star
 
 TSC Culture Garage gets people in the room. TSC Academy teaches them how to build. FSAE and engineering pathways prove the skill is real. Atlas runs the whole system.
