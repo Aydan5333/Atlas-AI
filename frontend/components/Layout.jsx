@@ -17,14 +17,16 @@ export default function Layout({ children }) {
         </div>
         <nav className="p-3 space-y-1">
           <NavLink href="/">🏠 Dashboard</NavLink>
-          <NavLink href="/hud">🥽 HUD</NavLink>
+          <NavLink href="/architect">🧭 Architect</NavLink>
           <NavLink href="/notes">📝 Notes</NavLink>
           <NavLink href="/profile">🙍 Profile</NavLink>
           <NavLink href="/scheduler">⏱️ Scheduler</NavLink>
           <NavLink href="/chat">💬 Chat</NavLink>
           <NavLink href="/system">⚙️ System</NavLink>
         </nav>
-        <div className="p-4 kicker">v1 • dark</div>
+        <div className="p-4 kicker leading-5">
+          v1 • dark<br />Keep your hands on the wheel.
+        </div>
       </aside>
 
       {/* Main */}

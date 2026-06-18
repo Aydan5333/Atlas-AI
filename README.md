@@ -1,29 +1,27 @@
 # Atlas-AI
 
-Atlas is the operating system for TSC: The Street Collective.
+Atlas is the personal operating system for The Street Collective, school, family, garage projects, content, and life operations.
 
-It is being built as a family-safe command center, survival and legacy vault, TSC business dashboard, event operating system, academy planning system, balanced pillar tracker, innovation radar, and future wearable HUD for ART, MUSIC, FASHION, AUTO, TECH, and EDUCATION. The long-term goal is to help organize life, family continuity, creative projects, property acquisition, sponsors, grants, education, and community-building without losing the core mission.
+TSC is the parent mission and culture layer. Atlas is the operating system. Agents are the designated lanes that help execute the work.
 
-## Current repo status
+## Current milestone
 
-This repository currently contains an early Atlas skeleton:
+Atlas Architect Foundation
 
-- FastAPI backend
-- Supabase client helpers
-- basic profiles and notes services
-- health check route
-- Next.js frontend package
-- database migration files
-- tests and workflow scaffolding
-- clean-sweep strategy docs
-- GitHub issue and pull request templates
+This milestone adds the first CTO-style agent lane for tracking emerging technology, protecting the Atlas/TSC vision, and turning useful updates into small experiments and roadmap moves.
 
-This repo is public. Do not commit private family documents, personal records, real addresses, API keys, passwords, `.env` files, financial documents, legal documents, or ChatGPT exports.
+## Stack
 
-## Local setup
+- Frontend: Next.js in `/frontend`
+- Frontend language: JS/JSX
+- Backend: FastAPI in `/app`
+- Database target: Supabase
+- Deployment targets: Vercel frontend and Render backend
 
-1. Copy `.env.example` to `.env` and fill in your local secrets.
-2. Install Python dependencies:
+## How to run locally
+
+1. Create `.env` from `.env.example` and fill keys.
+2. Install backend dependencies:
 
    ```bash
    pip install -r requirements.txt
@@ -32,56 +30,65 @@ This repo is public. Do not commit private family documents, personal records, r
 3. Run the API:
 
    ```bash
-   python -m app.main
+   python -m app.api.run
    ```
 
-4. Check the health endpoint:
+4. Open the API health check:
 
-   ```bash
+   ```text
    http://localhost:8000/health
    ```
 
-## Frontend setup
+5. Install and run the frontend:
 
-From the `frontend` folder:
+   ```bash
+   cd frontend
+   npm install
+   npm run dev
+   ```
 
-```bash
-npm install
-npm run dev
-```
+## Current API routes
+
+- `GET /health`
+- `GET /system/status`
+- `GET /architect/briefing`
+
+## Current frontend pages
+
+- `/` Dashboard
+- `/architect` Atlas Architect
+- `/chat` Command Router
+- `/notes`
+- `/profile`
+- `/scheduler`
+- `/system`
 
 ## Database migrations
 
-Run these in the Supabase SQL Editor when setting up a new database:
+Run these in the Supabase SQL Editor when ready:
 
 - `migrations/001_profiles.sql`
 - `migrations/002_notes.sql`
 
-## Clean sweep docs
+## Repo rules
 
-The first priority is documentation and structure before major feature work. See:
+- Keep frontend code in JS/JSX.
+- Use small branches and small commits.
+- Preferred commit prefixes: `feat:`, `fix:`, `docs:`, `chore:`, `ci:`.
+- Do not hard-code secrets.
+- If a build step fails, open a GitHub issue with logs and next actions.
+- Atlas is the head; tools and agents are extensions.
 
-- `docs/PROJECT_MAP.md`
-- `docs/ATLAS_MISSION.md`
-- `docs/ATLAS_ARCHITECT.md`
-- `docs/ATLAS_WEARABLE_HUD.md`
-- `docs/TSC_PILLARS_STRATEGY.md`
-- `docs/AGENT_SYSTEM.md`
-- `docs/TSC_EVENT_ACADEMY_STRATEGY.md`
-- `docs/ACADEMY_CURRICULUM.md`
-- `docs/CONTACT_PIPELINE.md`
-- `docs/TSC_PROOF_PROJECTS.md`
-- `docs/SURVIVAL_LEGACY_SPEC.md`
-- `docs/SECURITY_RULES.md`
-- `docs/OPENJARVIS_LICENSE_REVIEW.md`
-- `docs/CLEAN_SWEEP_BACKLOG.md`
+## Next build moves
 
-## OpenJarvis status
+1. Add an Atlas HUD page for smart-glasses-sized cards.
+2. Add an Innovation Radar table for tech updates and build decisions.
+3. Add agent cards for TSC, School, Garage, Content, Family, Finance, and Memory.
+4. Connect `/chat` to a backend command router.
+5. Add persistence for agent tasks and memory logs.
 
-OpenJarvis is approved for study and architecture reference only at this stage. It is not approved for direct Atlas Core integration or private family/survival data until license, privacy, security, and local storage boundaries are fully reviewed.
+## Quote library
 
-## Working principle
+> Keep your hands on the wheel.
 
-TSC is the platform. The pillars are the engine. Culture Garage is one proof event. Academy is the teaching system. Atlas is the operating system.
-
-Keep your hands on the wheel.
+> No more asi dejalo. We finish what we start.
