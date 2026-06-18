@@ -20,14 +20,15 @@ export default function Layout({ children }) {
               TSC
             </div>
             <div>
-              <div className="kicker">Atlas OS</div>
-              <div className="mt-1 text-xl font-black tracking-tight">Command Center</div>
+              <div className="kicker">TSC / Atlas</div>
+              <div className="mt-1 text-xl font-black tracking-tight">Flyer OS</div>
             </div>
           </div>
         </div>
 
         <nav className="p-3 space-y-2">
-          <NavLink href="/">Dashboard</NavLink>
+          <NavLink href="/">TSC Flyer</NavLink>
+          <NavLink href="/atlas">Atlas Brain</NavLink>
           <NavLink href="/hud">HUD Layer</NavLink>
           <NavLink href="/architect">Architect</NavLink>
           <NavLink href="/notes">Notes</NavLink>
@@ -40,7 +41,7 @@ export default function Layout({ children }) {
         <div className="mx-3 mb-4 mt-4 rounded-3xl border border-lime-300/20 bg-lime-300/[.06] p-4">
           <div className="kicker text-lime-100/70">Mission lock</div>
           <div className="mt-2 text-sm leading-6 text-white/75">
-            Keep your hands on the wheel. No more asi dejalo.
+            TSC is the face. Atlas is the brain. Approval before action.
           </div>
         </div>
       </aside>
