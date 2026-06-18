@@ -29,13 +29,13 @@ Suggested size: 20 to 40 people.
 
 ### Goal
 
-Create a clean proof package that can be sent to local sponsors, CNM/UNM circles, Brian/B2, ON 1-style production contacts, CACT.US/TXRX education contacts, and future event collaborators.
+Create a clean proof package that can be sent to local sponsors, CNM/UNM circles, production contacts, education contacts, and future event collaborators.
 
 ### Minimum viable setup
 
 | Element | Minimum version |
 | --- | --- |
-| Anchor car | Brian's Stormtrooper build or another trusted local build |
+| Anchor car | One trusted local build with clear permission |
 | Audio feature | Explain the system, demo reactions, document the build |
 | Live art | Paint/art on a panel, hood, helmet, glass, metal, or speaker box |
 | Fashion | TSC interlocked logo cap, Pro Club tee, sticker pack, Culture Garage 001 sample |
@@ -55,32 +55,33 @@ People should leave thinking:
 
 > I came for cars, music, fashion, and art, but I saw a path into design, engineering, fabrication, business, and community.
 
-## Proof Project 002: Brian / Stormtrooper / B2 Audio Feature
+## Proof Project 002: Auto / Audio / Fabrication Proof Lane
 
 ### Why this matters
 
-Brian is a warm relationship and respected local audio builder. He is tied to the Stormtrooper build and B2 Audio, which makes this the most realistic first proof project.
+The auto pillar should prove that TSC understands builds as culture, engineering, craft, documentation, and education.
+
+This lane should not depend on one named person, one vehicle, or one sponsor connection. It should be flexible enough to work with any trusted local build that gives permission and fits the mission.
 
 ### Deliverables
 
-- Brian story interview
-- Stormtrooper build photos
-- B2 Audio system overview
-- glass work connection
-- router/table workflow support if useful
-- competition recap if available
+- build story interview
+- clean photos of the vehicle or system
+- audio or fabrication overview
+- tool/process documentation
+- problem-solution breakdown
 - 60-second feature reel
-- sponsor recap one-pager
-- future TSC Audio Garage concept
+- sponsor-safe recap one-pager
+- future TSC Audio / Fabrication concept
 
 ### Tone
 
-Do not step on Brian's lane.
-Do not use his sponsor access without giving value.
+Do not step on someone else's lane.
+Do not imply a sponsorship or partnership that has not been approved.
 
 Position TSC as:
 
-> We help document, organize, and amplify what is already respected.
+> We help document, organize, and amplify real builders, real process, and real skill.
 
 ## Proof Project 003: TSC Academy Micro-Workshop
 
@@ -182,7 +183,7 @@ Atlas should eventually support proof projects with:
 
 Start with:
 
-1. Brian / Stormtrooper / B2 Audio feature plan
+1. Auto / Audio / Fabrication proof lane
 2. Culture Garage 001 one-page concept
 3. Academy micro-workshop outline
 4. FSAE tour/learning request
