@@ -11,6 +11,8 @@ permissions:
 jobs:
   patrol:
     runs-on: ubuntu-latest
+    env:
+      VERCEL_HOOK_URL: ${{ secrets.VERCEL_HOOK_URL }}
     steps:
       - uses: actions/checkout@v4
 
@@ -85,6 +87,6 @@ jobs:
           file_pattern: .atlas/last_agent_run.json
 
       - name: Trigger Vercel redeploy (optional)
-        if: ${{ secrets.VERCEL_HOOK_URL != '' }}
+        if: ${{ env.VERCEL_HOOK_URL != '' }}
         run: |
-          curl -fsSL -X POST "${{ secrets.VERCEL_HOOK_URL }}" || echo "No Vercel hook set"
+          curl -fsSL -X POST "$VERCEL_HOOK_URL" || echo "No Vercel hook set"
