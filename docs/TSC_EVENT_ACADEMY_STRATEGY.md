@@ -35,8 +35,8 @@ Start private and controlled. Suggested scale: 20 to 40 people.
 
 | Zone | Purpose |
 | --- | --- |
-| Anchor Car | Brian / Stormtrooper or another trusted build |
-| Audio Feature | B2 Audio / engineered sound demo / build explanation |
+| Anchor Build | trusted local car, audio system, fabrication project, or shop process with clear permission |
+| Audio / Fabrication Feature | engineered sound demo, wiring/process explanation, enclosure/fabrication story, or build breakdown |
 | Live Art | panel, hood, helmet, glass, metal, or speaker box art |
 | Fashion Drop | TSC cap, Pro Club tee, sticker pack, Culture Garage 001 piece |
 | Sim Racing | Assetto Corsa, Forza, or F1 leaderboard |
