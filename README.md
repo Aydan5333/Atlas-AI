@@ -2,7 +2,7 @@
 
 Atlas is the operating system for TSC: The Street Collective.
 
-It is being built as a family-safe command center, survival and legacy vault, TSC business dashboard, event operating system, and academy planning system. The long-term goal is to help organize life, family continuity, creative projects, property acquisition, sponsors, grants, education, and community-building without losing the core mission.
+It is being built as a family-safe command center, survival and legacy vault, TSC business dashboard, event operating system, academy planning system, and balanced pillar tracker for ART, MUSIC, FASHION, AUTO, TECH, and EDUCATION. The long-term goal is to help organize life, family continuity, creative projects, property acquisition, sponsors, grants, education, and community-building without losing the core mission.
 
 ## Current repo status
 
@@ -61,6 +61,7 @@ The first priority is documentation and structure before major feature work. See
 
 - `docs/PROJECT_MAP.md`
 - `docs/ATLAS_MISSION.md`
+- `docs/TSC_PILLARS_STRATEGY.md`
 - `docs/AGENT_SYSTEM.md`
 - `docs/TSC_EVENT_ACADEMY_STRATEGY.md`
 - `docs/ACADEMY_CURRICULUM.md`
@@ -77,4 +78,4 @@ OpenJarvis is approved for study and architecture reference only at this stage. 
 
 ## Working principle
 
-TSC Culture Garage gets people in the room. TSC Academy teaches them how to build. FSAE and engineering pathways prove the skill is real. Atlas runs the whole system.
+TSC is the platform. The pillars are the engine. Culture Garage is one proof event. Academy is the teaching system. Atlas is the operating system.
