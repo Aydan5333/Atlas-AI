@@ -14,7 +14,7 @@ const commandModules = [
   {
     title: "Culture Garage",
     subtitle: "Proof event",
-    body: "The first proof-of-world activation: cars, audio, art, music, fashion, sim racing, Academy, and Atlas ops in one controlled room.",
+    body: "A proof-of-world activation: cars, audio, art, music, fashion, sim racing, Academy, and Atlas ops in one controlled room.",
     next: "Next: build Culture Garage 001 proof package."
   },
   {
@@ -36,22 +36,10 @@ const commandModules = [
     next: "Next: prototype HUD v0.1."
   },
   {
-    title: "Survival + Legacy",
-    subtitle: "Protected planning",
-    body: "The repo documents structure only. Personal records and sensitive planning materials belong outside the public codebase.",
-    next: "Next: keep the vault separate from GitHub."
-  },
-  {
     title: "Contact + Capability Map",
     subtitle: "Network intelligence",
     body: "Map people, skills, tools, resources, project fit, proof needed, and respectful ways different circles can work together.",
     next: "Next: define contact fields and project connections."
-  },
-  {
-    title: "Grants + Property",
-    subtitle: "Business foundation",
-    body: "Track assistance programs, live/work property options, lender questions, investor prep, deadlines, and needed documents.",
-    next: "Next: create public-safe tracker models."
   }
 ];
 
@@ -76,54 +64,52 @@ export default function Dashboard(){
         if(!ignore) setOk(!!j?.ok);
       }catch{ if(!ignore) setOk(false); }
     })();
-    return ()=>{ ignore=true; }
+    return ()=>{ ignore=true; };
   },[]);
 
   return (
     <Layout>
       <header className="mb-6">
-        <h1 className="h1">Atlas Dashboard</h1>
-        <p className="kicker mt-1">Your daily cockpit for school, work, TSC, family, garage, content, and life.</p>
+        <div className="kicker mb-2">Atlas / TSC Command Center v0</div>
+        <h1 className="h1">One organized brain. One clear build path.</h1>
+        <p className="mt-3 max-w-3xl text-sm md:text-base text-white/75">
+          TSC is the platform. The pillars are the engine. Culture Garage is one proof event. Academy is the teaching system. Atlas is the operating system.
+        </p>
       </header>
 
-      <div className="grid gap-5 lg:grid-cols-[1.1fr_.9fr] mb-6">
+      <section className="grid gap-5 lg:grid-cols-[1.1fr_.9fr] mb-6">
         <Tile title="System Status" subtitle="Repo-safe cockpit" right={<StatusPill ok={ok===true} />}>
           <div className="text-sm text-white/80">
             {ok===null ? "Checking backend health..." : ok ? "Backend reachable." : "Backend not reachable from this environment."}
           </div>
-          <div className="kicker mt-2">Using: {BASE}</div>
+          <div className="kicker mt-2">Using: {BASE || "relative / same origin"}</div>
           <div className="mt-4 flex flex-wrap gap-2">
             <a className="btn btn-primary" href="/hud">Open HUD Prototype</a>
+            <a className="btn" href="/architect">Architect</a>
             <a className="btn" href="/notes">Notes</a>
-            <a className="btn" href="/scheduler">Scheduler</a>
             <a className="btn" href="/system">System</a>
           </div>
         </Tile>
 
-        <Tile title="Atlas Architect" subtitle="Innovation Radar">
+        <Tile title="Current North Star" subtitle="Mission guardrail">
           <div className="text-sm leading-6 text-white/85">
-            Tracks tech updates, filters hype, and turns the useful stuff into roadmap moves and tiny experiments.
+            Keep every pillar alive, map every useful relationship with respect, and protect the mission from noise.
           </div>
-          <a className="btn btn-primary mt-4" href="/architect">Open Architect</a>
+          <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4 text-sm text-white/80">
+            Keep your hands on the wheel. No more asi dejalo.
+          </div>
         </Tile>
+      </section>
 
-        <Tile title="Morning Brief" subtitle="Today">
-          <ul className="text-sm leading-6 text-white/85">
-            <li>• Agenda & classes</li>
-            <li>• Top 3 priorities for the day</li>
-            <li>• Last patrol heartbeat</li>
-            <li>• Agent lane to activate first</li>
-          </ul>
-        </Tile>
-      </div>
-
-        <Tile title="Quick Notes" subtitle="Capture">
-          <div className="text-sm text-white/80">
-            Use the Notes page to add, search and delete notes. Next, Atlas will surface the latest notes here by lane.
+      <section className="mb-6">
+        <div className="mb-3 flex items-end justify-between gap-4">
+          <div>
+            <div className="kicker">Modules</div>
+            <h2 className="text-xl font-semibold tracking-tight">Atlas cockpit cards</h2>
           </div>
           <div className="kicker hidden sm:block">Placeholder data only</div>
         </div>
-        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           {commandModules.map((module)=>(
             <Tile key={module.title} title={module.title} subtitle={module.subtitle}>
               <p className="text-sm leading-6 text-white/80">{module.body}</p>
@@ -147,23 +133,32 @@ export default function Dashboard(){
           </ol>
         </Tile>
 
-        <Tile title="Shortcuts" subtitle="Navigate">
-          <div className="flex flex-wrap gap-2">
+        <Tile title="Quick Notes" subtitle="Capture">
+          <div className="text-sm leading-6 text-white/80">
+            Use Notes to add, search, and delete ideas. Next, Atlas will surface the latest notes by lane.
+          </div>
+          <div className="mt-4 flex flex-wrap gap-2">
             <a className="btn btn-primary" href="/chat">Command Atlas</a>
-            <a className="btn" href="/architect">Architect</a>
-            <a className="btn" href="/notes">Notes</a>
             <a className="btn" href="/profile">Profile</a>
             <a className="btn" href="/scheduler">Scheduler</a>
-            <a className="btn" href="/system">System</a>
           </div>
         </Tile>
 
-        <Tile title="TSC Mission" subtitle="Parent Entity">
+        <Tile title="Build Rules" subtitle="Safety wall">
+          <ul className="space-y-2 text-sm leading-6 text-white/80">
+            <li>Use placeholder demo content until the data model is ready.</li>
+            <li>Keep protected planning materials outside this public codebase.</li>
+            <li>No agent sends messages, publishes, or makes commitments without approval.</li>
+            <li>Atlas documents the structure here. Sensitive records stay separate.</li>
+          </ul>
+        </Tile>
+
+        <Tile title="TSC Mission" subtitle="Parent entity">
           <div className="text-sm leading-6 text-white/85">
-            TSC is the culture and mission. Atlas is the operating system. The agents become the designated lanes that keep the whole build moving.
+            TSC is the culture and mission. Atlas is the operating system. Agents become the designated lanes that keep the whole build moving.
           </div>
         </Tile>
-      </div>
+      </section>
     </Layout>
   );
 }
