@@ -110,7 +110,7 @@ Every model should include a public/private flag where appropriate.
 ## Phase 5: TSC Culture Garage 001
 
 - [ ] Create one-page event concept
-- [ ] Create Brian / Stormtrooper / B2 feature plan
+- [ ] Create Auto / Audio / Fabrication proof lane plan
 - [ ] Create shot list
 - [ ] Create sponsor recap template
 - [ ] Create event run-of-show
@@ -134,12 +134,12 @@ Every model should include a public/private flag where appropriate.
 
 - [ ] Contact CNM SBDC
 - [ ] Contact WESST
-- [ ] Contact Brian / Stormtrooper
+- [ ] Identify first local auto/audio/fabrication proof build with permission
 - [ ] Request UNM FSAE tour / skill prep guidance
 - [ ] Build TSC one-page concept sheet
 - [ ] Build 10-slide mini deck
 - [ ] Build proof reel after Culture Garage 001
-- [ ] Contact B2 / paint brands / media only after proof assets exist
+- [ ] Contact paint brands / media / sponsor targets only after proof assets exist
 
 ## Phase 8: Survival + Legacy Vault
 
