@@ -195,5 +195,117 @@ body::after{
   box-shadow:inset 0 1px 0 rgba(255,255,255,.07);
 }
 
+.flyer-page{
+  position:relative;
+  overflow:hidden;
+  min-height:calc(100vh - 4rem);
+  border:1px solid rgba(255,255,255,.11);
+  border-radius:38px;
+  background:
+    radial-gradient(820px 360px at 50% 18%, rgba(255,255,255,.10), transparent 62%),
+    radial-gradient(720px 380px at 10% 10%, rgba(255,106,0,.22), transparent 60%),
+    radial-gradient(540px 360px at 95% 82%, rgba(255,106,0,.18), transparent 55%),
+    linear-gradient(135deg, #050505 0%, #111216 46%, #050505 100%);
+  box-shadow:0 30px 100px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.10);
+}
+.flyer-page::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px),
+    linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
+    repeating-linear-gradient(115deg, rgba(255,255,255,.035) 0 2px, transparent 2px 12px),
+    radial-gradient(circle at 50% 42%, transparent 0 130px, rgba(255,255,255,.035) 132px 133px, transparent 135px 100%);
+  background-size:34px 34px, 34px 34px, 100% 100%, 100% 100%;
+  opacity:.52;
+}
+.flyer-page::after{
+  content:"";
+  position:absolute;
+  inset:-10%;
+  pointer-events:none;
+  background:
+    radial-gradient(circle at 26% 34%, rgba(255,255,255,.10), transparent 16%),
+    radial-gradient(circle at 68% 34%, rgba(255,255,255,.08), transparent 15%),
+    linear-gradient(180deg, transparent, rgba(0,0,0,.62));
+  filter:contrast(1.3);
+  opacity:.38;
+}
+.flyer-inner{ position:relative; z-index:1 }
+.tsc-mark{
+  font-size:clamp(5rem, 18vw, 14rem);
+  line-height:.72;
+  font-weight:1000;
+  letter-spacing:-.12em;
+  text-transform:uppercase;
+  color:#f4f0e8;
+  text-shadow:0 1px 0 #fff, 0 16px 40px rgba(0,0,0,.65), 0 0 42px rgba(255,106,0,.12);
+}
+.tsc-script{
+  font-family: Georgia, "Times New Roman", serif;
+  font-style:italic;
+  letter-spacing:-.06em;
+}
+.orange-slab{
+  background:linear-gradient(135deg, var(--orange), #ff8c2a);
+  color:#060606;
+  box-shadow:0 14px 40px rgba(255,106,0,.22);
+}
+.flyer-zone{
+  position:relative;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.045);
+  backdrop-filter:blur(10px);
+  transition:transform .22s ease, border-color .22s ease, background .22s ease, box-shadow .22s ease;
+}
+.flyer-zone::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(135deg, rgba(255,106,0,.16), transparent 40%, rgba(255,255,255,.04));
+  opacity:.62;
+}
+.flyer-zone > *{ position:relative; z-index:1 }
+.flyer-zone:hover,
+.flyer-zone.active{
+  transform:translateY(-3px) rotate(-.25deg);
+  border-color:rgba(255,106,0,.65);
+  background:rgba(255,106,0,.09);
+  box-shadow:0 22px 60px rgba(0,0,0,.42), 0 0 42px rgba(255,106,0,.12);
+}
+.flyer-zone.active::after{
+  content:"";
+  position:absolute;
+  left:18px;
+  right:18px;
+  bottom:12px;
+  height:3px;
+  background:var(--orange);
+  box-shadow:0 0 22px rgba(255,106,0,.7);
+}
+.flyer-action{
+  transition:transform .22s ease, filter .22s ease, box-shadow .22s ease;
+}
+.flyer-action:hover,
+.flyer-action.active{
+  transform:translateY(-2px) scale(1.01);
+  filter:saturate(1.15);
+  box-shadow:0 18px 52px rgba(255,106,0,.22);
+}
+.flyer-panel{
+  border:1px solid rgba(255,255,255,.12);
+  background:linear-gradient(180deg, rgba(7,8,10,.92), rgba(16,17,20,.86));
+  backdrop-filter:blur(18px);
+  box-shadow:0 26px 80px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.08);
+}
+.flyer-microtype{
+  writing-mode:vertical-rl;
+  text-orientation:mixed;
+  letter-spacing:.34em;
+}
+
 :focus-visible{ outline:none; box-shadow:var(--ring) }
 ::selection{ background:rgba(255,106,0,.36); color:var(--ivory) }
