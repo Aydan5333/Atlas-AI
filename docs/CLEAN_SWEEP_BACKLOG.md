@@ -23,6 +23,7 @@ Already started:
 - Atlas Architect innovation radar spec
 - Atlas Wearable HUD spec
 - GitHub issue and pull request templates
+- Contact + Capability Map direction
 
 ## Safety status
 
@@ -52,6 +53,7 @@ Main branch should not be edited directly.
 - [x] Add clean sweep backlog
 - [x] Add Atlas Architect innovation radar spec
 - [x] Add Atlas Wearable HUD spec
+- [x] Evolve contacts into Contact + Capability Map
 
 ## Phase 2: Repo hygiene
 
@@ -76,7 +78,7 @@ Build a simple dashboard with tabs:
 - [ ] Culture Garage
 - [ ] Academy
 - [ ] Pillars
-- [ ] Contacts
+- [ ] Contact + Capability Map
 - [ ] Sponsors
 - [ ] Grants
 - [ ] Properties
@@ -91,6 +93,9 @@ Goal: clickable cockpit before complex automation.
 Future tables/models to design:
 
 - [ ] contacts
+- [ ] contact_skills
+- [ ] contact_resources
+- [ ] contact_project_links
 - [ ] sponsors
 - [ ] grants
 - [ ] properties
@@ -110,7 +115,8 @@ Every model should include a public/private flag where appropriate.
 ## Phase 5: TSC Culture Garage 001
 
 - [ ] Create one-page event concept
-- [ ] Create Auto / Audio / Fabrication proof lane plan
+- [ ] Create Contact + Capability Map for first proof lanes
+- [ ] Create Auto / Audio / Fabrication proof lane plan without depending on one contact
 - [ ] Create shot list
 - [ ] Create sponsor recap template
 - [ ] Create event run-of-show
@@ -134,6 +140,7 @@ Every model should include a public/private flag where appropriate.
 
 - [ ] Contact CNM SBDC
 - [ ] Contact WESST
+- [ ] Map first 10 contact/circle records by capability
 - [ ] Identify first local auto/audio/fabrication proof build with permission
 - [ ] Request UNM FSAE tour / skill prep guidance
 - [ ] Build TSC one-page concept sheet
@@ -198,8 +205,8 @@ Clean sweep is complete when:
 - TSC Culture Garage and Academy are represented
 - Atlas Architect has a documented innovation radar role
 - Atlas Wearable HUD has a documented first prototype path
-- contact pipeline exists
-- proof projects are defined
+- Contact + Capability Map exists
+- proof projects are defined without depending on one warm relationship
 - survival/legacy boundaries are clear
 - GitHub templates exist
 - next build issues can be created from backlog
