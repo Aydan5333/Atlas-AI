@@ -45,7 +45,7 @@ const commandModules = [
     title: "Sponsors + Contacts",
     subtitle: "Relationship pipeline",
     body: "Track warm bridges, proof needed before outreach, follow-ups, sponsor-ready assets, and permission-based next steps.",
-    next: "Next: connect Brian / Stormtrooper / B2 proof lane."
+    next: "Next: map the first auto/audio/fabrication proof build."
   },
   {
     title: "Grants + Property",
