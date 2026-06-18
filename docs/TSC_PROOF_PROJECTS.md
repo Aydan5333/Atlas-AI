@@ -29,14 +29,14 @@ Suggested size: 20 to 40 people.
 
 ### Goal
 
-Create a clean proof package that can be sent to local sponsors, CNM/UNM circles, production contacts, education contacts, and future event collaborators.
+Create a clean proof package that can be sent to local sponsors, CNM/UNM circles, local builders, event-production contacts, education contacts, and future collaborators.
 
 ### Minimum viable setup
 
 | Element | Minimum version |
 | --- | --- |
-| Anchor car | One trusted local build with clear permission |
-| Audio feature | Explain the system, demo reactions, document the build |
+| Anchor build | One trusted local car, audio, fabrication, fashion, art, or tech proof piece with permission |
+| Audio / build story | Explain the process, demo reactions, document the craft |
 | Live art | Paint/art on a panel, hood, helmet, glass, metal, or speaker box |
 | Fashion | TSC interlocked logo cap, Pro Club tee, sticker pack, Culture Garage 001 sample |
 | Sim station | Assetto Corsa, Forza, F1, or basic racing rig with leaderboard |
@@ -55,33 +55,47 @@ People should leave thinking:
 
 > I came for cars, music, fashion, and art, but I saw a path into design, engineering, fabrication, business, and community.
 
-## Proof Project 002: Auto / Audio / Fabrication Proof Lane
+## Proof Project 002: TSC Contact + Capability Map
 
 ### Why this matters
 
-The auto pillar should prove that TSC understands builds as culture, engineering, craft, documentation, and education.
+TSC should not build around one person, one car, one sponsor, or one lane.
 
-This lane should not depend on one named person, one vehicle, or one sponsor connection. It should be flexible enough to work with any trusted local build that gives permission and fits the mission.
+Atlas needs to understand the full network: people, skills, tools, spaces, brands, mentors, resources, project ideas, and how they can connect across the pillars.
+
+This is where contacts live.
 
 ### Deliverables
 
-- build story interview
-- clean photos of the vehicle or system
-- audio or fabrication overview
-- tool/process documentation
-- problem-solution breakdown
-- 60-second feature reel
-- sponsor-safe recap one-pager
-- future TSC Audio / Fabrication concept
+- contact categories
+- skill and ability fields
+- resource/tool fields
+- pillar connection fields
+- project fit fields
+- proof needed before outreach
+- possible collaboration paths
+- follow-up status
+- public/private flag
+- first 10 public-safe contact/circle examples
+- first 5 project ideas generated from contact capabilities
 
-### Tone
+### Contact map principle
 
-Do not step on someone else's lane.
-Do not imply a sponsorship or partnership that has not been approved.
+Do not treat contacts like leads to extract from.
 
-Position TSC as:
+Treat contacts like a living relationship network:
 
-> We help document, organize, and amplify real builders, real process, and real skill.
+> Who are they? What do they do? What do they care about? What can we build that creates value on both sides?
+
+### Atlas role
+
+Atlas should eventually be able to say:
+
+- These three contacts could support a small audio/fabrication lesson.
+- This artist plus this printer plus this photographer could support a fashion drop.
+- This mentor plus this project could become an Academy workshop.
+- This local builder plus this content plan could become a respectful proof recap.
+- This space plus this safety plan plus this workshop outline could become a future activation.
 
 ## Proof Project 003: TSC Academy Micro-Workshop
 
@@ -100,6 +114,7 @@ Possible first topics:
 - how a hat/shirt design becomes a product
 - how live art becomes brand identity
 - how Atlas organizes a project from idea to recap
+- how a contact map turns people, skills, and resources into a real project
 
 ### Output
 
@@ -146,7 +161,8 @@ Minimum assets:
 4. sponsor opportunity list
 5. safety and logistics overview
 6. photo/reel proof package
-7. clear ask: advice, collaboration, or support
+7. contact + capability map summary
+8. clear ask: advice, collaboration, or support
 
 ## Proof package checklist
 
@@ -172,20 +188,23 @@ Atlas should eventually support proof projects with:
 - project status
 - checklist
 - contacts
+- contact skills and capabilities
 - assets needed
 - media folder links
 - sponsor deliverables
 - recap prompt generator
 - follow-up reminders
+- related projects
+- possible cross-pillar connections
 - private/public flag
 
 ## Current priority
 
 Start with:
 
-1. Auto / Audio / Fabrication proof lane
+1. TSC Contact + Capability Map
 2. Culture Garage 001 one-page concept
 3. Academy micro-workshop outline
 4. FSAE tour/learning request
 
-Do not chase national brands until proof exists.
+Do not chase national brands until proof exists. Do not make one warm relationship carry the whole proof strategy.
