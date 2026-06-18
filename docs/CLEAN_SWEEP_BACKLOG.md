@@ -20,6 +20,9 @@ Already started:
 - Next.js frontend package scaffold
 - migrations for profiles and notes
 - clean-sweep documentation branch
+- Atlas Architect innovation radar spec
+- Atlas Wearable HUD spec
+- GitHub issue and pull request templates
 
 ## Safety status
 
@@ -47,6 +50,8 @@ Main branch should not be edited directly.
 - [x] Add survival and legacy spec
 - [x] Add security rules
 - [x] Add clean sweep backlog
+- [x] Add Atlas Architect innovation radar spec
+- [x] Add Atlas Wearable HUD spec
 
 ## Phase 2: Repo hygiene
 
@@ -55,9 +60,9 @@ Main branch should not be edited directly.
 - [ ] Confirm API health route works locally
 - [ ] Confirm frontend starts from `frontend/`
 - [ ] Confirm migrations match service code
-- [ ] Add basic issue templates
-- [ ] Add pull request template
-- [ ] Add public/private data warning to contributor docs
+- [x] Add basic issue templates
+- [x] Add pull request template
+- [x] Add public/private data warning to contributor docs
 - [ ] Add tests for health endpoint if not already stable
 
 ## Phase 3: Atlas Command Center v0
@@ -70,11 +75,14 @@ Build a simple dashboard with tabs:
 - [ ] TSC
 - [ ] Culture Garage
 - [ ] Academy
+- [ ] Pillars
 - [ ] Contacts
 - [ ] Sponsors
 - [ ] Grants
 - [ ] Properties
 - [ ] Tasks
+- [ ] Architect
+- [ ] HUD
 
 Goal: clickable cockpit before complex automation.
 
@@ -93,6 +101,9 @@ Future tables/models to design:
 - [ ] survival_checklists
 - [ ] legacy_index
 - [ ] documents_index
+- [ ] pillar_projects
+- [ ] innovation_updates
+- [ ] hud_cards
 
 Every model should include a public/private flag where appropriate.
 
@@ -146,7 +157,25 @@ This work happens outside the public repo.
 - [ ] Export ChatGPT history and store privately
 - [ ] Do not commit private files to GitHub
 
-## Phase 9: Agents and automation later
+## Phase 9: Atlas Architect + innovation radar
+
+- [ ] Create `Architect` dashboard tab
+- [ ] Add innovation update cards
+- [ ] Add labels: Ignore, Watch, Research, Prototype, Integrate, Strategic Priority
+- [ ] Create weekly Atlas Innovation Brief template
+- [ ] Create GitHub issue flow for prototype-worthy updates
+- [ ] Track smart glasses, AI agents, AR/XR, robotics, CAD, automotive tools, creator tools, grants, and sponsor ecosystems
+
+## Phase 10: Atlas Wearable HUD v0.1
+
+- [ ] Create `/frontend/pages/hud.jsx`
+- [ ] Add mode cards: Now, Capture, Build Mode, TSC Mode, School Mode, Garage Mode
+- [ ] Use mocked data first
+- [ ] Keep layout narrow-display friendly
+- [ ] Add privacy note: no always-recording, no face recognition, no private family data
+- [ ] Later connect HUD cards to tasks, notes, projects, contacts, and calendar
+
+## Phase 11: Agents and automation later
 
 Do not start these until phases 1-4 are stable:
 
@@ -167,9 +196,12 @@ Clean sweep is complete when:
 - README is clean
 - Atlas mission is clear
 - TSC Culture Garage and Academy are represented
+- Atlas Architect has a documented innovation radar role
+- Atlas Wearable HUD has a documented first prototype path
 - contact pipeline exists
 - proof projects are defined
 - survival/legacy boundaries are clear
+- GitHub templates exist
 - next build issues can be created from backlog
 
 ## North star
@@ -178,3 +210,5 @@ TSC Culture Garage gets people in the room.
 TSC Academy teaches them how to build.
 FSAE and engineering pathways prove the skill is real.
 Atlas runs the whole system.
+
+Keep your hands on the wheel.
