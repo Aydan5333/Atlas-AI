@@ -23,7 +23,7 @@ export default function Dashboard(){
     <Layout>
       <header className="mb-6">
         <h1 className="h1">Atlas Dashboard</h1>
-        <p className="kicker mt-1">Your daily cockpit for school, work, TSC, and life.</p>
+        <p className="kicker mt-1">Your daily cockpit for school, work, TSC, family, garage, content, and life.</p>
       </header>
 
       <div className="grid gap-5 md:grid-cols-2">
@@ -34,27 +34,42 @@ export default function Dashboard(){
           <div className="kicker mt-2">Using: {BASE}</div>
         </Tile>
 
+        <Tile title="Atlas Architect" subtitle="Innovation Radar">
+          <div className="text-sm leading-6 text-white/85">
+            Tracks tech updates, filters hype, and turns the useful stuff into roadmap moves and tiny experiments.
+          </div>
+          <a className="btn btn-primary mt-4" href="/architect">Open Architect</a>
+        </Tile>
+
         <Tile title="Morning Brief" subtitle="Today">
           <ul className="text-sm leading-6 text-white/85">
-            <li>• Agenda & classes (Google OAuth coming)</li>
+            <li>• Agenda & classes</li>
             <li>• Top 3 priorities for the day</li>
             <li>• Last patrol heartbeat</li>
+            <li>• Agent lane to activate first</li>
           </ul>
         </Tile>
 
         <Tile title="Quick Notes" subtitle="Capture">
           <div className="text-sm text-white/80">
-            Use the Notes page to add, search and delete notes. We’ll surface your latest here next.
+            Use the Notes page to add, search and delete notes. Next, Atlas will surface the latest notes here by lane.
           </div>
         </Tile>
 
         <Tile title="Shortcuts" subtitle="Navigate">
           <div className="flex flex-wrap gap-2">
-            <a className="btn btn-primary" href="/notes">Open Notes</a>
+            <a className="btn btn-primary" href="/chat">Command Atlas</a>
+            <a className="btn" href="/architect">Architect</a>
+            <a className="btn" href="/notes">Notes</a>
             <a className="btn" href="/profile">Profile</a>
             <a className="btn" href="/scheduler">Scheduler</a>
-            <a className="btn" href="/chat">Chat</a>
             <a className="btn" href="/system">System</a>
+          </div>
+        </Tile>
+
+        <Tile title="TSC Mission" subtitle="Parent Entity">
+          <div className="text-sm leading-6 text-white/85">
+            TSC is the culture and mission. Atlas is the operating system. The agents become the designated lanes that keep the whole build moving.
           </div>
         </Tile>
       </div>
