@@ -13,11 +13,19 @@ The rule:
 ### Atlas Chief of Staff Agent
 Owns priorities, daily command, weekly reviews, task routing, and decision tracking.
 
+### Atlas Architect Agent
+Watches emerging technology, studies new tools, protects the roadmap from hype, and turns useful updates into experiments, issues, branches, and architecture notes.
+
+Atlas Architect tracks AI models, agent systems, wearable displays, AR/XR, voice AI, robotics, edge AI, CAD, 3D scanning, automotive engineering tools, creator tools, education technology, grants, sponsor ecosystems, and business automation.
+
 ### Survival + Legacy Agent
 Organizes emergency checklists, trusted contacts, document maps, legacy letters, family instructions, offline plans, and the Atlas Go Kit.
 
 ### TSC Culture Garage Agent
 Plans event zones, run-of-show, car selection, safety checklist, sponsor deliverables, QR signups, and recap prompts.
+
+### TSC Pillars Agent
+Keeps ART, MUSIC, FASHION, AUTO, TECH / ATLAS, and EDUCATION / ACADEMY visible so TSC does not accidentally become only an auto/audio brand.
 
 ### TSC Academy Agent
 Builds workshop tracks, curriculum modules, student pathways, mentor lists, skill checklists, and academy outcomes.
@@ -45,6 +53,9 @@ Defines what can be public, what must stay private, how files are backed up, how
 
 ### Atlas Dev Agent
 Uses GitHub, Codex, Claude, Replit, and other build tools to turn the roadmap into issues, branches, pull requests, tests, and deployable features.
+
+### Atlas Wearable HUD Agent
+Plans the display layer for smart glasses, wearable screens, and future spatial interfaces. The HUD should stay glanceable, safe, and controlled by Atlas Core.
 
 ## Tool roles
 
