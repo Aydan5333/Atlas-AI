@@ -1,12 +1,12 @@
-export default function Tile({ title, subtitle, children, right }) {
+export default function Tile({ title, subtitle, children, right, className = "" }) {
   return (
-    <section className="tile">
-      <div className="flex items-center justify-between mb-3">
+    <section className={`tile ${className}`}>
+      <div className="flex items-start justify-between gap-4 mb-4">
         <div>
-          <div className="kicker">{subtitle}</div>
-          <h3 className="text-base md:text-lg font-semibold tracking-tight">{title}</h3>
+          {subtitle ? <div className="kicker mb-1">{subtitle}</div> : null}
+          <h3 className="text-lg md:text-xl font-black tracking-tight">{title}</h3>
         </div>
-        {right}
+        {right ? <div className="shrink-0">{right}</div> : null}
       </div>
       {children}
     </section>
