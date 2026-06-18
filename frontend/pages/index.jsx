@@ -42,10 +42,10 @@ const commandModules = [
     next: "Next: keep the vault separate from GitHub."
   },
   {
-    title: "Sponsors + Contacts",
-    subtitle: "Relationship pipeline",
-    body: "Track warm bridges, proof needed before outreach, follow-ups, sponsor-ready assets, and permission-based next steps.",
-    next: "Next: map the first auto/audio/fabrication proof build."
+    title: "Contact + Capability Map",
+    subtitle: "Network intelligence",
+    body: "Map people, skills, tools, resources, project fit, proof needed, and respectful ways different circles can work together.",
+    next: "Next: define contact fields and project connections."
   },
   {
     title: "Grants + Property",
@@ -58,6 +58,7 @@ const commandModules = [
 const proofPriorities = [
   "Review and merge clean-sweep PR manually if GitHub allows it.",
   "Build Command Center v0 as the visible cockpit.",
+  "Build the Contact + Capability Map as Atlas network memory.",
   "Prototype Atlas HUD v0.1 as the wearable lane.",
   "Turn Culture Garage 001 into a sponsor-safe proof package.",
   "Keep Atlas Architect watching the edge without chasing hype."
@@ -104,7 +105,7 @@ export default function Dashboard(){
 
         <Tile title="Current North Star" subtitle="Mission guardrail">
           <div className="text-sm leading-6 text-white/85">
-            Keep every pillar alive, move auto first where proof is warm, and protect the mission from noise.
+            Keep every pillar alive, map every useful relationship with respect, and protect the mission from noise.
           </div>
           <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4 text-sm text-white/80">
             Keep your hands on the wheel. No more asi dejalo.
