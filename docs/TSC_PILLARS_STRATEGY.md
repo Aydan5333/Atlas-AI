@@ -149,13 +149,14 @@ Auto gives TSC mechanical credibility, movement, engineering connection, and a b
 
 ### Example projects
 
-- Brian / Stormtrooper / B2 Audio feature
-- car audio build docs
-- show car detailing
+- Auto / Audio / Fabrication proof lane
+- car audio build documentation
+- show car detailing documentation
 - FSAE learning path
 - sim racing leaderboard
 - vehicle breakdown reels
 - fabrication repair stories
+- shop process and tool workflow content
 
 ### Academy topics
 
@@ -168,17 +169,18 @@ Auto gives TSC mechanical credibility, movement, engineering connection, and a b
 - vehicle dynamics
 - FSAE prep
 - CAD and part design
+- documenting a build from idea to recap
 
 ### Partner targets
 
-- Brian / Stormtrooper / TeamAB
-- B2 Audio
 - local car clubs
 - FSAE / UNM
 - CNM trades
 - detail shops
 - fabrication shops
 - audio shops
+- motorsport mentors
+- local builders with permission
 
 ## Pillar 5: TECH / ATLAS
 
@@ -269,7 +271,7 @@ But future activations can lead with any pillar:
 | ART | live art lab, mural panel night, gallery pop-up |
 | MUSIC | producer session, listening party, DJ workshop |
 | FASHION | sample drop, embroidery night, lookbook shoot |
-| AUTO | audio/build feature, sim racing night, FSAE bridge event |
+| AUTO | audio/build documentation, sim racing night, FSAE bridge event |
 | TECH | Atlas demo night, AI workflow workshop, digital ops lab |
 | ACADEMY | youth/community workshop, skill showcase, mentor night |
 
@@ -288,13 +290,17 @@ Atlas should eventually show a pillar dashboard with:
 
 ## Current risk
 
-Because the auto lane has the warmest immediate proof through Brian, Stormtrooper, B2, FSAE, and the user's mechanical engineering path, it may naturally move first.
+Because the auto lane may have the warmest immediate proof through local builds, audio, fabrication, detailing, FSAE, and the user's mechanical engineering path, it may naturally move first.
 
 That is okay.
 
 The risk is letting auto define the whole brand.
 
 Atlas must prevent that by keeping the other pillars visible and active.
+
+## Public-facing rule
+
+Do not build a whole public segment around one person, one vehicle, or one sponsor connection. The public segment should be the lane: Auto / Audio / Fabrication.
 
 ## North star
 
