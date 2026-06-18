@@ -1,28 +1,75 @@
 # Atlas-AI
 
-## How to run locally
-1) Create .env from .env.example and fill keys.
-2) pip install -r requirements.txt
-3) API: python -m app.api.run  (http://localhost:8000/health)
+Atlas is the operating system for TSC: The Street Collective.
 
-## Database migrations (run in Supabase SQL Editor)
-- migrations/001_profiles.sql
-- migrations/002_notes.sql
+It is being built as a family-safe command center, survival and legacy vault, TSC business dashboard, event operating system, and academy planning system. The long-term goal is to help organize life, family continuity, creative projects, property acquisition, sponsors, grants, education, and community-building without losing the core mission.
 
-## How to run locally
-1) Create .env from .env.example and fill keys.
-2) pip install -r requirements.txt
-3) API: python -m app.api.run  (http://localhost:8000/health)
+## Current repo status
 
-## Database migrations (run in Supabase SQL Editor)
-- migrations/001_profiles.sql
-- migrations/002_notes.sql
+This repository currently contains an early Atlas skeleton:
 
-## How to run locally
-1) Create .env from .env.example and fill keys.
-2) pip install -r requirements.txt
-3) API: python -m app.api.run  (http://localhost:8000/health)
+- FastAPI backend
+- Supabase client helpers
+- basic profiles and notes services
+- health check route
+- Next.js frontend package
+- database migration files
+- tests and workflow scaffolding
 
-## Database migrations (run in Supabase SQL Editor)
-- migrations/001_profiles.sql
-- migrations/002_notes.sql
+This repo is public. Do not commit private family documents, personal records, real addresses, API keys, passwords, `.env` files, financial documents, legal documents, or ChatGPT exports.
+
+## Local setup
+
+1. Copy `.env.example` to `.env` and fill in your local secrets.
+2. Install Python dependencies:
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. Run the API:
+
+   ```bash
+   python -m app.main
+   ```
+
+4. Check the health endpoint:
+
+   ```bash
+   http://localhost:8000/health
+   ```
+
+## Frontend setup
+
+From the `frontend` folder:
+
+```bash
+npm install
+npm run dev
+```
+
+## Database migrations
+
+Run these in the Supabase SQL Editor when setting up a new database:
+
+- `migrations/001_profiles.sql`
+- `migrations/002_notes.sql`
+
+## Clean sweep docs
+
+The first priority is documentation and structure before major feature work. See:
+
+- `docs/PROJECT_MAP.md`
+- `docs/ATLAS_MISSION.md`
+- `docs/AGENT_SYSTEM.md`
+- `docs/TSC_EVENT_ACADEMY_STRATEGY.md`
+- `docs/ACADEMY_CURRICULUM.md`
+- `docs/CONTACT_PIPELINE.md`
+- `docs/TSC_PROOF_PROJECTS.md`
+- `docs/SURVIVAL_LEGACY_SPEC.md`
+- `docs/SECURITY_RULES.md`
+- `docs/CLEAN_SWEEP_BACKLOG.md`
+
+## Working principle
+
+TSC Culture Garage gets people in the room. TSC Academy teaches them how to build. FSAE and engineering pathways prove the skill is real. Atlas runs the whole system.
