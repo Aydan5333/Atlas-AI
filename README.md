@@ -68,7 +68,12 @@ The first priority is documentation and structure before major feature work. See
 - `docs/TSC_PROOF_PROJECTS.md`
 - `docs/SURVIVAL_LEGACY_SPEC.md`
 - `docs/SECURITY_RULES.md`
+- `docs/OPENJARVIS_LICENSE_REVIEW.md`
 - `docs/CLEAN_SWEEP_BACKLOG.md`
+
+## OpenJarvis status
+
+OpenJarvis is approved for study and architecture reference only at this stage. It is not approved for direct Atlas Core integration or private family/survival data until license, privacy, security, and local storage boundaries are fully reviewed.
 
 ## Working principle
 
