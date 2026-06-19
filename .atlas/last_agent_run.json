@@ -1,0 +1,5 @@
+{
+  "timestamp": "2026-06-19T03:00:03+00:00",
+  "base_api": "https://atlas-ai-4nqg.onrender.com",
+  "latency": { "hello": "0.299061", "notes_list": "0.254086" }
+}
