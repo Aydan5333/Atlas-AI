@@ -1,38 +1,10 @@
 import { useEffect, useState } from "react";
 import Layout from "../components/Layout";
-import Tile from "../components/Tile";
-import { getProfile, upsertProfile } from "../lib/api";
-
-const USER = "test";
-
-export default function ProfilePage(){
-  const [display_name, setName] = useState("");
-  const [avatar_url, setAvatar] = useState("");
-
-  useEffect(()=>{
-    getProfile(USER).then(r => {
-      setName(r.display_name || "");
-      setAvatar(r.avatar_url || "");
-    }).catch(()=>{});
-  },[]);
-
-  return (
-    <Layout>
-      <Tile title="Profile">
-        <form onSubmit={async(e)=>{e.preventDefault(); await upsertProfile({ user_id: USER, display_name, avatar_url }); alert("Saved"); }}>
-          <div className="grid sm:grid-cols-2 gap-3">
-            <label className="block text-sm opacity-80">
-              Display name
-              <input className="input mt-1" value={display_name} onChange={e=>setName(e.target.value)} />
-            </label>
-            <label className="block text-sm opacity-80">
-              Avatar URL
-              <input className="input mt-1" value={avatar_url} onChange={e=>setAvatar(e.target.value)} />
-            </label>
-          </div>
-          <button className="btn mt-3" type="submit">Save</button>
-        </form>
-      </Tile>
-    </Layout>
-  );
+import Unlock from "../components/Unlock";
+import { request, getProfile, upsertProfile } from "../lib/api";
+export default function ProfilePage() {
+  const [profile, setProfile] = useState({ user_id: "local", display_name: "", avatar_url: "" }); const [unlocked, setUnlocked] = useState(false); const [message, setMessage] = useState("");
+  async function initialize() { try { const s = await request("session"); setUnlocked(s.authenticated); if (s.authenticated) setProfile(await getProfile("local")); } catch (err) { setMessage(err.message); } }
+  useEffect(() => { initialize(); }, []);
+  return <Layout><div className="core-workspace"><h1>Profile</h1>{!unlocked ? <Unlock onUnlocked={initialize} /> : <form className="core-form" onSubmit={async e => { e.preventDefault(); try { await upsertProfile(profile); setMessage("Profile saved."); } catch (err) { setMessage(err.message); } }}><label>Display name<input value={profile.display_name} onChange={e => setProfile({ ...profile, display_name: e.target.value })} /></label><label>Avatar URL<input type="url" value={profile.avatar_url} onChange={e => setProfile({ ...profile, avatar_url: e.target.value })} /></label><button>Save</button></form>}<p role="status">{message}</p></div></Layout>;
 }
