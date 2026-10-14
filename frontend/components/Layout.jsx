@@ -12,8 +12,8 @@ const NavLink = ({ href, children }) => (
 
 export default function Layout({ children }) {
   return (
-    <div className="min-h-screen grid grid-cols-1 md:grid-cols-[280px_1fr]">
-      <aside className="relative z-10 md:h-screen md:sticky md:top-0 border-r border-white/[.08] bg-black/35 backdrop-blur-xl">
+    <div className="atlas-shell min-h-screen grid grid-cols-1 md:grid-cols-[280px_1fr]">
+      <aside className="atlas-sidebar relative z-10 md:h-screen md:sticky md:top-0 border-r border-white/[.08] bg-black/35 backdrop-blur-xl">
         <div className="p-5 border-b border-white/[.08]">
           <div className="flex items-center gap-3">
             <div className="grid h-12 w-12 place-items-center rounded-2xl border border-orange-400/35 bg-orange-500/10 text-sm font-black text-orange-200 shadow-[0_0_32px_rgba(255,106,0,.16)]">
@@ -26,8 +26,9 @@ export default function Layout({ children }) {
           </div>
         </div>
 
-        <nav className="p-3 space-y-2">
-          <NavLink href="/">Dashboard</NavLink>
+        <nav className="atlas-nav p-3 space-y-2">
+          <NavLink href="/workspace">Workspace</NavLink>
+          <NavLink href="/">Dashboard prototype</NavLink>
           <NavLink href="/hud">HUD Layer</NavLink>
           <NavLink href="/architect">Architect</NavLink>
           <NavLink href="/notes">Notes</NavLink>
