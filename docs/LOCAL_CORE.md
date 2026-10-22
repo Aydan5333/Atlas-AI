@@ -4,7 +4,7 @@ This branch turns the existing prototype into a single-owner, local workspace. I
 
 ## Daily workspace update
 
-See [DAILY_RELEASE.md](DAILY_RELEASE.md) for Today, spoken briefing playback, dated priorities/reviews, business blueprints, Creator Bridge, and the single-command Mac launcher. These additions are local and do not activate alarms, phone calls, AI, or external connectors.
+See [DAILY_RELEASE.md](DAILY_RELEASE.md) for Today, spoken briefing playback, dated priorities/reviews, business blueprints, Creator Bridge, and the single-command Mac launcher. These additions are local and do not activate alarms, phone calls, AI, or external connectors. See [TSC Ecosystem Operating Model](TSC_ECOSYSTEM_OPERATING_MODEL.md) for the intended business structure: independent lanes coordinated through a shared TSC view. The current unencrypted local database is not a finance system and must not hold sensitive financial records.
 
 ## Run on the existing Mac first
 
