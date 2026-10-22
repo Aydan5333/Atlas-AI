@@ -2,6 +2,10 @@
 
 This branch turns the existing prototype into a single-owner, local workspace. It is not a deployed cloud service and does not activate external integrations.
 
+## Daily workspace update
+
+See [DAILY_RELEASE.md](DAILY_RELEASE.md) for Today, spoken briefing playback, dated priorities/reviews, business blueprints, and the single-command Mac launcher. These additions are local and do not activate alarms, phone calls, AI, or external connectors.
+
 ## Run on the existing Mac first
 
 Prerequisites: Python 3.12+, Node.js 22+, npm.

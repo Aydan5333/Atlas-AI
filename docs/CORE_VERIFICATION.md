@@ -21,3 +21,12 @@ Run `python -m pytest` for backend checks. With both local servers running, run 
 Optional browser check: install Playwright into the frontend with `npm install --prefix frontend --no-save --package-lock=false playwright`, install its Chromium browser, then run `node scripts/verify_browser.cjs`. This script remains unverified here; it creates and removes a temporary task.
 
 A passing compile or HTTP request is not evidence of visual/mobile usability. Complete browser and private deployment checks before treating this as a phone-ready release.
+
+## Daily release update — 2026-10-21
+
+- 11 backend tests pass, including authenticated daily plans, maximum three unique task priorities, local-date due/overdue calculation, persisted evening reviews, deletion of selected tasks, business blueprint persistence, linked execution tasks, and export inclusion.
+- Next.js production build passes with `/today` and `/business` routes.
+- Live frontend proxy → backend → SQLite verification passes: login, cookie/origin controls, record save/read/export/delete and logout.
+- `bash -n scripts/start_local.sh` passes. The launcher has not been exercised on the owner's Mac.
+- Browser test `scripts/verify_daily_browser.cjs` was added for the new workflow. Execution remains blocked here: the standard Chromium download was invalid, and an alternate packaged Chromium exited before a page could open. Browser/mobile rendering and real audible speech playback remain unverified. The test stubs speech to check wiring only; it cannot certify audible output.
+- No deployment, automatic wake-up, telephone call, AI inference or connector sync was performed. PR changes are not automatically active in the existing hosted service.

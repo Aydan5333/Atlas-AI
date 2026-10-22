@@ -6,7 +6,7 @@ import { request, listItems, createItem, updateItem, deleteItem } from "../lib/a
 const kinds = ["task", "project", "contact", "innovation", "note"];
 const lanes = ["Atlas", "TSC", "School", "Garage", "Content", "Family", "Finance", "Memory"];
 const statuses = ["planned", "active", "blocked", "done"];
-const blank = kind => ({ kind, title: "", body: "", lane: "Atlas", status: "planned", skills: [], resources: [], project_id: null });
+const blank = kind => ({ kind, title: "", body: "", lane: "Atlas", status: "planned", due_date: null, priority: "normal", skills: [], resources: [], project_id: null });
 
 export default function Workspace() {
   const [authenticated, setAuthenticated] = useState(false); const [checked, setChecked] = useState(false);
@@ -33,6 +33,7 @@ export default function Workspace() {
           <label>{kind === "note" ? "Note" : "Details / next action"}<textarea rows={4} maxLength={20000} value={draft.body} onChange={e => setDraft({ ...draft, body: e.target.value })} /></label>
           <label>Lane<select value={draft.lane} onChange={e => setDraft({ ...draft, lane: e.target.value })}>{lanes.map(lane => <option key={lane}>{lane}</option>)}</select></label>
           <label>Status<select value={draft.status} onChange={e => setDraft({ ...draft, status: e.target.value })}>{statuses.map(status => <option key={status}>{status}</option>)}</select></label>
+          {kind === "task" && <><label>Due date<input type="date" value={draft.due_date || ""} onChange={e => setDraft({ ...draft, due_date: e.target.value || null })} /></label><label>Priority<select value={draft.priority || "normal"} onChange={e => setDraft({ ...draft, priority: e.target.value })}><option value="normal">Normal</option><option value="high">High</option></select></label></>}
           {kind !== "project" && <label>Linked project<select value={draft.project_id || ""} onChange={e => setDraft({ ...draft, project_id: e.target.value || null })}><option value="">None</option>{projects.map(project => <option value={project.id} key={project.id}>{project.title}</option>)}</select></label>}
           {kind === "contact" && <><label>Skills (comma separated)<input value={draft.skills.join(",")} onChange={e => setDraft({ ...draft, skills: e.target.value.split(",") })} /></label><label>Tools / resources (comma separated)<input value={draft.resources.join(",")} onChange={e => setDraft({ ...draft, resources: e.target.value.split(",") })} /></label></>}
           <button disabled={busy} type="submit">{busy ? "Saving…" : editing ? "Save changes" : "Save"}</button>{editing && <button type="button" onClick={() => { setEditing(null); setDraft(blank(kind)); }}>Cancel</button>}

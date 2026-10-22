@@ -66,3 +66,60 @@ def test_profile_export_and_honest_capabilities(client):
     caps = client.get('/capabilities').json()
     assert all(c['status'] == 'not_connected' for c in caps['connectors'])
     assert 'AI conversation and agent execution' in caps['planned']
+
+
+def test_daily_plan_persists_priorities_review_and_export(client):
+    task = client.post('/workspace/items', json={'kind': 'task', 'title': 'Quote a paid job', 'due_date': '2026-10-20', 'lane': 'TSC'}).json()['item']
+    future = client.post('/workspace/items', json={'kind': 'task', 'title': 'Future task', 'due_date': '2026-10-23'}).json()['item']
+    plan = {'focus_ids': [task['id']], 'commitments': '10 AM supplier meeting', 'review': 'Sent the quote; follow up tomorrow.'}
+    result = client.put('/daily/2026-10-21', json=plan)
+    assert result.status_code == 200
+    summary = result.json()
+    assert [t['id'] for t in summary['overdue']] == [task['id']]
+    assert future['id'] not in summary['spoken_text']
+    assert '10 AM supplier meeting' in summary['spoken_text']
+    assert summary['completed_focus'] == 0
+    client.put('/workspace/items/' + task['id'], json={**task, 'status': 'done'})
+    with TestClient(app, headers=dict(client.headers)) as restarted:
+        saved = restarted.get('/daily/2026-10-21').json()
+        assert saved['plan'] == plan
+        assert saved['completed_focus'] == 1
+        assert saved['overdue'] == []
+        assert restarted.get('/daily/2026-10-22').json()['plan']['focus_ids'] == []
+        assert restarted.get('/workspace/export').json()['days'][0]['review'] == plan['review']
+    assert client.get('/daily/2026-10-21', headers={'Authorization': ''}).status_code == 401
+
+
+def test_daily_validation_and_local_calendar_date(client):
+    ids = [client.post('/workspace/items', json={'kind': 'task', 'title': f'Task {i}', 'due_date': '2026-10-21'}).json()['item']['id'] for i in range(4)]
+    assert len(client.get('/daily/2026-10-21').json()['due']) == 4
+    assert len(client.get('/daily/2026-10-22').json()['overdue']) == 4
+    assert client.put('/daily/2026-10-21', json={'focus_ids': ids}).status_code == 422
+    assert client.put('/daily/2026-10-21', json={'focus_ids': [ids[0], ids[0]]}).status_code == 422
+    assert client.put('/daily/2026-10-21', json={'focus_ids': ['missing']}).status_code == 422
+    project = client.post('/workspace/items', json={'kind': 'project', 'title': 'Example'}).json()['item']
+    assert client.put('/daily/2026-10-21', json={'focus_ids': [project['id']]}).status_code == 422
+    assert client.get('/daily/2026-02-30').status_code == 422
+    assert client.post('/workspace/items', json={'kind': 'task', 'title': 'Invalid date', 'due_date': 'not-a-date'}).status_code == 422
+
+
+def test_blueprint_round_trip_and_linked_execution(client):
+    blueprint = {'stage': 'local_proof', 'offer': 'Document a paid detail', 'economics': 'Record materials and labor before setting a target margin', 'proof': 'No paid pilot yet', 'next_action': 'Cost the pilot'}
+    project = client.post('/workspace/items', json={'kind': 'project', 'title': 'TSC pilot', 'lane': 'TSC', 'blueprint': blueprint}).json()['item']
+    task = client.post('/workspace/items', json={'kind': 'task', 'title': blueprint['next_action'], 'project_id': project['id']}).json()['item']
+    exported = client.get('/workspace/export').json()
+    saved = next(i for i in exported['items'] if i['id'] == project['id'])
+    assert saved['blueprint']['proof'] == 'No paid pilot yet'
+    assert task['project_id'] == project['id']
+    assert client.delete('/workspace/items/' + project['id']).status_code == 409
+    assert client.post('/workspace/items', json={'kind': 'project', 'title': 'Bad', 'blueprint': {'stage': 'worldwide_success'}}).status_code == 422
+
+
+def test_deleted_priority_does_not_break_saved_day(client):
+    task = client.post('/workspace/items', json={'kind': 'task', 'title': 'Temporary priority'}).json()['item']
+    client.put('/daily/2026-10-21', json={'focus_ids': [task['id']], 'review': 'Keep this review'})
+    assert client.delete('/workspace/items/' + task['id']).status_code == 200
+    saved = client.get('/daily/2026-10-21').json()
+    assert saved['focus'] == [] and saved['plan']['focus_ids'] == []
+    assert saved['plan']['review'] == 'Keep this review'
+    assert client.put('/daily/2026-10-21', json=saved['plan']).status_code == 200

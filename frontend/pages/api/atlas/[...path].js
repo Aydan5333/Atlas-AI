@@ -1,6 +1,6 @@
 import { timingSafeEqual } from "node:crypto";
 
-const permitted = /^(health|system\/status|architect\/briefing|notes\/(list|search|add|delete)|profiles\/(get|upsert)|workspace\/(items(?:\/[a-f0-9-]+)?|export)|briefing|capabilities)$/;
+const permitted = /^(health|system\/status|architect\/briefing|notes\/(list|search|add|delete)|profiles\/(get|upsert)|workspace\/(items(?:\/[a-f0-9-]+)?|export)|daily\/\d{4}-\d{2}-\d{2}|briefing|capabilities)$/;
 const attempts = new Map();
 function matches(a, b) {
   if (typeof a !== "string" || typeof b !== "string") return false;

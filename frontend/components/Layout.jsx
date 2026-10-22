@@ -27,6 +27,8 @@ export default function Layout({ children }) {
         </div>
 
         <nav className="atlas-nav p-3 space-y-2">
+          <NavLink href="/today">Today</NavLink>
+          <NavLink href="/business">TSC Blueprint</NavLink>
           <NavLink href="/workspace">Workspace</NavLink>
           <NavLink href="/">Dashboard prototype</NavLink>
           <NavLink href="/hud">HUD Layer</NavLink>

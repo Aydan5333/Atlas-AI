@@ -3,7 +3,7 @@ import json
 import os
 import secrets
 import sqlite3
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Literal
 from uuid import uuid4
@@ -31,6 +31,7 @@ def connect():
     db.execute("CREATE TABLE IF NOT EXISTS records (id TEXT PRIMARY KEY, kind TEXT NOT NULL, payload TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)")
     db.execute("CREATE INDEX IF NOT EXISTS records_kind ON records(kind)")
     db.execute("CREATE TABLE IF NOT EXISTS profile (id TEXT PRIMARY KEY, payload TEXT NOT NULL)")
+    db.execute("CREATE TABLE IF NOT EXISTS days (day TEXT PRIMARY KEY, payload TEXT NOT NULL, updated_at TEXT NOT NULL)")
     return db
 
 
@@ -43,6 +44,18 @@ Lane = Literal["Atlas", "TSC", "School", "Garage", "Content", "Family", "Finance
 Status = Literal["planned", "active", "blocked", "done"]
 
 
+class BusinessBlueprint(BaseModel):
+    stage: Literal["local_proof", "repeatable_operations", "second_city", "international"] = "local_proof"
+    offer: str = Field(default="", max_length=3000)
+    customer: str = Field(default="", max_length=3000)
+    economics: str = Field(default="", max_length=3000)
+    acquisition: str = Field(default="", max_length=3000)
+    proof: str = Field(default="", max_length=3000)
+    operations: str = Field(default="", max_length=3000)
+    expansion_gate: str = Field(default="", max_length=3000)
+    next_action: str = Field(default="", max_length=200)
+
+
 class Record(BaseModel):
     kind: Kind
     title: str = Field(min_length=1, max_length=200)
@@ -52,6 +65,9 @@ class Record(BaseModel):
     skills: list[str] = Field(default_factory=list, max_length=30)
     resources: list[str] = Field(default_factory=list, max_length=30)
     project_id: str | None = None
+    due_date: date | None = None
+    priority: Literal["normal", "high"] = "normal"
+    blueprint: BusinessBlueprint | None = None
 
 
 def unpack(row):
@@ -88,7 +104,7 @@ def create_item(record: Record):
         validate_link(db, record)
         with db:
             db.execute("INSERT INTO records VALUES (?,?,?,?,?)", (ident, record.kind, record.model_dump_json(), stamp, stamp))
-        return {"item": {**record.model_dump(), "id": ident, "created_at": stamp, "updated_at": stamp}}
+        return {"item": {**record.model_dump(mode="json"), "id": ident, "created_at": stamp, "updated_at": stamp}}
     finally:
         db.close()
 
@@ -108,7 +124,7 @@ def update_item(item_id: str, record: Record):
         stamp = now()
         with db:
             db.execute("UPDATE records SET payload=?,updated_at=? WHERE id=?", (record.model_dump_json(), stamp, item_id))
-        return {"item": {**record.model_dump(), "id": item_id, "created_at": row["created_at"], "updated_at": stamp}}
+        return {"item": {**record.model_dump(mode="json"), "id": item_id, "created_at": row["created_at"], "updated_at": stamp}}
     finally:
         db.close()
 
@@ -204,9 +220,66 @@ def briefing():
 
 @router.get("/workspace/export")
 def export_workspace():
-    return {"schema_version": 1, "exported_at": now(), "items": list_items()["items"], "profile": get_profile()}
+    db = connect()
+    try:
+        days = [{"day": row["day"], **json.loads(row["payload"]), "updated_at": row["updated_at"]} for row in db.execute("SELECT * FROM days ORDER BY day DESC")]
+    finally:
+        db.close()
+    return {"schema_version": 1, "exported_at": now(), "items": list_items()["items"], "profile": get_profile(), "days": days}
+
+
+class DayPlan(BaseModel):
+    focus_ids: list[str] = Field(default_factory=list, max_length=3)
+    commitments: str = Field(default="", max_length=5000)
+    review: str = Field(default="", max_length=5000)
+
+
+@router.put("/daily/{day}")
+def save_day(day: date, plan: DayPlan):
+    items = {item["id"]: item for item in list_items()["items"]}
+    if len(set(plan.focus_ids)) != len(plan.focus_ids):
+        raise HTTPException(422, "Choose each priority only once")
+    if any(ident not in items or items[ident]["kind"] != "task" for ident in plan.focus_ids):
+        raise HTTPException(422, "Priorities must refer to existing tasks")
+    db = connect()
+    try:
+        with db:
+            db.execute("INSERT INTO days VALUES (?,?,?) ON CONFLICT(day) DO UPDATE SET payload=excluded.payload,updated_at=excluded.updated_at", (day.isoformat(), plan.model_dump_json(), now()))
+    finally:
+        db.close()
+    return daily(day)
+
+
+@router.get("/daily/{day}")
+def daily(day: date):
+    db = connect()
+    try:
+        row = db.execute("SELECT payload FROM days WHERE day=?", (day.isoformat(),)).fetchone()
+    finally:
+        db.close()
+    plan = json.loads(row["payload"]) if row else DayPlan().model_dump()
+    items = list_items()["items"]
+    lookup = {item["id"]: item for item in items}
+    plan["focus_ids"] = [ident for ident in plan["focus_ids"] if ident in lookup and lookup[ident]["kind"] == "task"]
+    focus = [lookup[ident] for ident in plan["focus_ids"] if ident in lookup]
+    open_tasks = [item for item in items if item["kind"] == "task" and item["status"] != "done"]
+    # ISO dates sort chronologically; callers supply their local calendar date.
+    overdue = [item for item in open_tasks if item.get("due_date") and item["due_date"] < day.isoformat()]
+    due = [item for item in open_tasks if item.get("due_date") == day.isoformat()]
+    blockers = [item for item in items if item["status"] == "blocked"]
+    completed = [item for item in focus if item["status"] == "done"]
+    spoken = [f"Atlas briefing for {day.isoformat()}.", f"You have {len(open_tasks)} open tasks, {len(overdue)} overdue, and {len(blockers)} blockers."]
+    spoken += [f"Priority {i + 1}: {item['title']}. Status: {item['status']}." for i, item in enumerate(focus)]
+    if not focus:
+        spoken.append("Choose up to three priorities for this day.")
+    if plan["commitments"]:
+        spoken.append("Your manually entered commitments: " + plan["commitments"])
+    if due:
+        spoken.append("Due on this date: " + "; ".join(item["title"] for item in due))
+    spoken.append("Keep your hands on the wheel.")
+    return {"day": day.isoformat(), "plan": plan, "focus": focus, "due": due, "overdue": overdue, "blockers": blockers, "completed_focus": len(completed), "open_tasks": len(open_tasks), "spoken_text": " ".join(spoken), "generated_at": now()}
 
 
 @router.get("/capabilities")
 def capabilities():
-    return {"storage": "local SQLite (unencrypted)", "identity": "single-owner", "implemented": ["notes", "profile", "tasks", "projects", "contacts with skills/resources/project links", "manual innovation radar", "briefing", "JSON export"], "planned": ["AI conversation and agent execution", "cloud sign-in and multi-user storage", "calendar and mail sync", "creator app control", "payments", "voice and wearable integrations", "encrypted Survival/Legacy vault", "CAD/LiDAR processing"], "connectors": [{"name": name, "status": "not_connected"} for name in ["GitHub", "Google Drive", "Gmail", "Google Calendar", "Canva", "Shopify", "Ableton Live", "FL Studio", "Serato", "Payments"]]}
+    return {"storage": "local SQLite (unencrypted)", "identity": "single-owner", "implemented": ["notes", "profile", "tasks", "projects", "contacts with skills/resources/project links", "manual innovation radar", "briefing", "daily plans and evening reviews", "TSC business blueprints", "JSON export"], "planned": ["AI conversation and agent execution", "cloud sign-in and multi-user storage", "calendar and mail sync", "creator app control", "payments", "voice and wearable integrations", "encrypted Survival/Legacy vault", "CAD/LiDAR processing"], "connectors": [{"name": name, "status": "not_connected"} for name in ["GitHub", "Google Drive", "Gmail", "Google Calendar", "Canva", "Shopify", "Ableton Live", "FL Studio", "Serato", "Payments"]]}
