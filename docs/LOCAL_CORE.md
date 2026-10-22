@@ -4,7 +4,7 @@ This branch turns the existing prototype into a single-owner, local workspace. I
 
 ## Daily workspace update
 
-See [DAILY_RELEASE.md](DAILY_RELEASE.md) for Today, spoken briefing playback, dated priorities/reviews, business blueprints, and the single-command Mac launcher. These additions are local and do not activate alarms, phone calls, AI, or external connectors.
+See [DAILY_RELEASE.md](DAILY_RELEASE.md) for Today, spoken briefing playback, dated priorities/reviews, business blueprints, Creator Bridge, and the single-command Mac launcher. These additions are local and do not activate alarms, phone calls, AI, or external connectors.
 
 ## Run on the existing Mac first
 
@@ -36,7 +36,8 @@ If configuration already exists, add a random token of at least 32 characters as
 
 - Notes: save, list, search, delete; corrected frontend argument and response mismatches.
 - Profile: single local owner, save and retrieve.
-- Workspace: create/edit/delete tasks, projects, contacts, and manual innovation entries.
+- Workspace: create/edit/delete tasks, projects, contacts, content plans/outcome logs, and manual innovation entries.
+- Creator Bridge: manually record audience, purpose, channels, CTA, post URLs, reach, inquiries, paid project count, revenue and a follow-up task. No external social integration is connected.
 - Tasks: status changes, completion and reopening.
 - Contacts: skills, tools/resources, project links. Project deletion is rejected while linked records exist.
 - Command intake: save a command as a task or note; keyword-based lane suggestion. No AI response is fabricated.
@@ -59,6 +60,7 @@ The default API runner binds to loopback. Remote/mobile access requires a separa
 |---|---|---|
 | Notes, tasks, projects, contacts, profile | Implemented locally | Run and unlock `/workspace` |
 | Manual innovation radar, briefing, export | Implemented locally | Save records / call authenticated API |
+| Content plan and manual results log | Implemented locally | Unlock `/bridge`; publishing and analytics remain manual |
 | Chat / domain agents | Capture works; AI not implemented | Choose provider, add server-side credentials, implement retrieval/tool approvals, verify responses |
 | Gmail / Calendar / Drive / GitHub sync | Not connected in Atlas | Implement scoped OAuth and connector services; ChatGPT app connections do not transfer automatically |
 | Canva / Shopify / payments | Planned | Official APIs, credentials, approval and transaction boundaries |

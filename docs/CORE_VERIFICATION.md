@@ -30,3 +30,11 @@ A passing compile or HTTP request is not evidence of visual/mobile usability. Co
 - `bash -n scripts/start_local.sh` passes. The launcher has not been exercised on the owner's Mac.
 - Browser test `scripts/verify_daily_browser.cjs` was added for the new workflow. Execution remains blocked here: the standard Chromium download was invalid, and an alternate packaged Chromium exited before a page could open. Browser/mobile rendering and real audible speech playback remain unverified. The test stubs speech to check wiring only; it cannot certify audible output.
 - No deployment, automatic wake-up, telephone call, AI inference or connector sync was performed. PR changes are not automatically active in the existing hosted service.
+
+## Creator Bridge and content-to-cash update — 2026-10-22
+
+- 13 backend tests pass. New checks cover content plan persistence, channel and result validation, project linkage, briefing counts and JSON export.
+- Next.js production build passes and includes `/bridge`.
+- Creator Bridge records content purpose/audience/pillars/channels/CTA/source asset, manual post URLs, date, entered reach/inquiry/paid-project/revenue results, and a follow-up task.
+- No social API, posting, artist discovery, outreach, analytics sync, payment, or revenue verification was activated. This is still local-only and unmerged until the PR is reviewed and merged.
+- Browser/mobile UI and platform login flows remain unverified in this environment; the previous Chromium launch failure still blocks visual/end-to-end checks. The new page was compile-checked but not exercised in a real browser.

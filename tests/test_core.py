@@ -123,3 +123,34 @@ def test_deleted_priority_does_not_break_saved_day(client):
     assert saved['focus'] == [] and saved['plan']['focus_ids'] == []
     assert saved['plan']['review'] == 'Keep this review'
     assert client.put('/daily/2026-10-21', json=saved['plan']).status_code == 200
+
+
+def test_creator_bridge_content_results_and_project_link(client):
+    project = client.post('/workspace/items', json={'kind': 'project', 'title': 'TSC artist proof'}).json()['item']
+    content = {
+        'kind': 'content', 'title': 'Studio process clip', 'lane': 'Content', 'status': 'done', 'project_id': project['id'],
+        'content': {'objective': 'collaborate', 'audience': 'Albuquerque musicians', 'series': 'TSC builds',
+                    'pillars': ['Art', 'Music'], 'platforms': ['Instagram', 'YouTube Shorts'],
+                    'call_to_action': 'DM COLLAB with one idea', 'asset_link': 'https://example.com/source',
+                    'post_links': ['https://example.com/post'], 'published_on': '2026-10-21',
+                    'views': 1200, 'saves': 32, 'inquiries': 2, 'paid_projects': 1, 'revenue': '250.00'}
+    }
+    created = client.post('/workspace/items', json=content)
+    assert created.status_code == 201
+    item = created.json()['item']
+    assert item['content']['revenue'] == '250.00'
+    assert client.get('/workspace/items?kind=content').json()['items'][0]['id'] == item['id']
+    assert client.get('/briefing').json()['counts']['content'] == 1
+    exported = client.get('/workspace/export').json()
+    assert next(row for row in exported['items'] if row['id'] == item['id'])['content']['inquiries'] == 2
+    assert client.put('/workspace/items/' + item['id'], json={**content, 'status': 'active', 'content': {**content['content'], 'inquiries': 3}}).json()['item']['content']['inquiries'] == 3
+    assert client.delete('/workspace/items/' + project['id']).status_code == 409
+
+
+def test_creator_bridge_rejects_invalid_result_and_channel_data(client):
+    bad_revenue = {'kind': 'content', 'title': 'Bad revenue', 'content': {'revenue': '-1.00'}}
+    bad_channel = {'kind': 'content', 'title': 'Bad channel', 'content': {'platforms': ['Unknown Platform']}}
+    too_many_links = {'kind': 'content', 'title': 'Too many links', 'content': {'post_links': [f'https://example.com/{i}' for i in range(6)]}}
+    assert client.post('/workspace/items', json=bad_revenue).status_code == 422
+    assert client.post('/workspace/items', json=bad_channel).status_code == 422
+    assert client.post('/workspace/items', json=too_many_links).status_code == 422

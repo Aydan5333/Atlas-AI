@@ -37,8 +37,14 @@ Open **TSC Blueprint**, create a named business project, and fill in:
 
 Save, then explicitly add the next action to tasks. It links to the project and avoids creating another identical open task. Choose it on Today. Stage selection does not certify progress. The framework recommends local proof → repeatable operations → second-city pilot → international demand validation; it does not assume revenue, sales or partners.
 
+## Creator Bridge → conversations → paid work
+
+Open **Creator Bridge** to plan a story for a specific audience, choose a TSC purpose and channels, write one call to action, and link an asset. Publish manually, then add live URLs and measured results, inquiries, paid projects, and revenue. Use its follow-up button to put response work on Today. The page does not discover people, post, message, read analytics, or process payments. See [Creator Bridge](CREATOR_BRIDGE.md) for the first TSC content experiment and the proof standard.
+
+The first four-week experiment is in [TSC Content-to-Cash Sprint](TSC_CONTENT_TO_CASH_SPRINT.md). Its suggested first offer is a small paid artist-release visual package; treat it as a pilot until a real paid customer validates it. The doc includes an outreach structure, weekly proof loop and stop/revise criteria.
+
 ## Release boundary and next milestone
 
 Local SQLite remains unencrypted. Keep sensitive family/legal/health/financial records outside this release. External calendar/email connections, AI conversation, private phone hosting, encrypted storage, and reliable wake-up delivery remain unimplemented.
 
-Recommendation: validate one complete day on the owner's Mac, then seven consecutive days of real use. Private phone access requires HTTPS, managed identity, durable storage, tested backups and device verification. No hosting/provider account or telephone-delivery credentials were provisioned in this change.
+Recommendation: validate one complete daily cycle and one Creator Bridge post on the owner's Mac; then run the four-week TSC content-to-cash experiment. Private phone access requires HTTPS, managed identity, durable storage, tested backups and device verification. No hosting/provider account or telephone-delivery credentials were provisioned in this change.

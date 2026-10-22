@@ -4,6 +4,7 @@ import os
 import secrets
 import sqlite3
 from datetime import date, datetime, timezone
+from decimal import Decimal
 from pathlib import Path
 from typing import Literal
 from uuid import uuid4
@@ -39,7 +40,7 @@ def now():
     return datetime.now(timezone.utc).isoformat()
 
 
-Kind = Literal["task", "project", "contact", "innovation", "note"]
+Kind = Literal["task", "project", "contact", "innovation", "note", "content"]
 Lane = Literal["Atlas", "TSC", "School", "Garage", "Content", "Family", "Finance", "Memory"]
 Status = Literal["planned", "active", "blocked", "done"]
 
@@ -56,6 +57,24 @@ class BusinessBlueprint(BaseModel):
     next_action: str = Field(default="", max_length=200)
 
 
+class ContentPlan(BaseModel):
+    """Manual publish and outcome log. This never posts to external platforms."""
+    objective: Literal["show_work", "collaborate", "commission", "service", "community"] = "show_work"
+    audience: str = Field(default="", max_length=500)
+    series: str = Field(default="", max_length=200)
+    pillars: list[Literal["Art", "Music", "Fashion", "Auto", "Tech", "Education"]] = Field(default_factory=list, max_length=6)
+    platforms: list[Literal["Instagram", "TikTok", "YouTube Shorts", "YouTube", "Other"]] = Field(default_factory=list, max_length=5)
+    call_to_action: str = Field(default="", max_length=500)
+    asset_link: str = Field(default="", max_length=2000)
+    post_links: list[str] = Field(default_factory=list, max_length=5)
+    published_on: date | None = None
+    views: int = Field(default=0, ge=0, le=1_000_000_000)
+    saves: int = Field(default=0, ge=0, le=1_000_000_000)
+    inquiries: int = Field(default=0, ge=0, le=1_000_000)
+    paid_projects: int = Field(default=0, ge=0, le=1_000_000)
+    revenue: Decimal = Field(default=Decimal("0"), ge=0, max_digits=12, decimal_places=2)
+
+
 class Record(BaseModel):
     kind: Kind
     title: str = Field(min_length=1, max_length=200)
@@ -68,6 +87,7 @@ class Record(BaseModel):
     due_date: date | None = None
     priority: Literal["normal", "high"] = "normal"
     blueprint: BusinessBlueprint | None = None
+    content: ContentPlan | None = None
 
 
 def unpack(row):
@@ -215,7 +235,7 @@ def save_profile(profile: Profile):
 @router.get("/briefing")
 def briefing():
     items = list_items()["items"]
-    return {"counts": {kind: sum(item["kind"] == kind for item in items) for kind in ("task", "project", "contact", "note", "innovation")}, "next_tasks": [item for item in items if item["kind"] == "task" and item["status"] != "done"][:5], "blockers": [item for item in items if item["status"] == "blocked"], "generated_at": now()}
+    return {"counts": {kind: sum(item["kind"] == kind for item in items) for kind in ("task", "project", "contact", "note", "innovation", "content")}, "next_tasks": [item for item in items if item["kind"] == "task" and item["status"] != "done"][:5], "blockers": [item for item in items if item["status"] == "blocked"], "generated_at": now()}
 
 
 @router.get("/workspace/export")
@@ -282,4 +302,4 @@ def daily(day: date):
 
 @router.get("/capabilities")
 def capabilities():
-    return {"storage": "local SQLite (unencrypted)", "identity": "single-owner", "implemented": ["notes", "profile", "tasks", "projects", "contacts with skills/resources/project links", "manual innovation radar", "briefing", "daily plans and evening reviews", "TSC business blueprints", "JSON export"], "planned": ["AI conversation and agent execution", "cloud sign-in and multi-user storage", "calendar and mail sync", "creator app control", "payments", "voice and wearable integrations", "encrypted Survival/Legacy vault", "CAD/LiDAR processing"], "connectors": [{"name": name, "status": "not_connected"} for name in ["GitHub", "Google Drive", "Gmail", "Google Calendar", "Canva", "Shopify", "Ableton Live", "FL Studio", "Serato", "Payments"]]}
+    return {"storage": "local SQLite (unencrypted)", "identity": "single-owner", "implemented": ["notes", "profile", "tasks", "projects", "contacts with skills/resources/project links", "manual innovation radar", "briefing", "daily plans and evening reviews", "TSC business blueprints", "manual content publishing and outcome log", "JSON export"], "planned": ["AI conversation and agent execution", "cloud sign-in and multi-user storage", "calendar and mail sync", "creator app control", "payments", "voice and wearable integrations", "encrypted Survival/Legacy vault", "CAD/LiDAR processing"], "connectors": [{"name": name, "status": "not_connected"} for name in ["GitHub", "Google Drive", "Gmail", "Google Calendar", "Canva", "Shopify", "Ableton Live", "FL Studio", "Serato", "Payments"]]}
