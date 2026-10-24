@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import Layout from "../components/Layout";
 import Tile from "../components/Tile";
+import { createItem } from "../lib/api";
 
 const lanes = [
   {
@@ -36,6 +37,9 @@ function chooseLane(text) {
 
 export default function Chat() {
   const [command, setCommand] = useState("");
+  const [result, setResult] = useState("");
+  const [busy, setBusy] = useState(false);
+  async function capture(kind) { setBusy(true); setResult(""); try { await createItem({ kind, title: command.trim().slice(0, 200), body: command.trim(), lane: lane.name === "TSC Agent" ? "TSC" : lane.name === "School Agent" ? "School" : lane.name === "Garage Agent" ? "Garage" : "Atlas", status: "planned" }); setResult(`Saved as a ${kind}. Open Workspace to manage it.`); } catch (err) { setResult(err.message + ". Unlock your Workspace first if needed."); } finally { setBusy(false); } }
   const lane = useMemo(() => chooseLane(command), [command]);
   const hasCommand = command.trim().length > 0;
 
@@ -45,7 +49,7 @@ export default function Chat() {
         <div className="kicker">Atlas Command Router</div>
         <h1 className="h1 mt-1">Chat</h1>
         <p className="mt-2 max-w-3xl text-sm leading-6 text-white/75">
-          This is the command intake page. Right now it routes your message to the right Atlas lane locally. Next, we connect it to the backend command router and model provider once secrets are configured.
+          Capture a command as a saved task or note. Lane suggestions use local keyword matching. AI conversation and autonomous agent execution are not connected yet.
         </p>
       </header>
 
@@ -59,6 +63,7 @@ export default function Chat() {
             onChange={(e) => setCommand(e.target.value)}
             placeholder="Example: Meta glasses updated developer display access. What should Atlas Architect do with this?"
           />
+          <div className="core-workspace"><button disabled={!hasCommand || busy} onClick={() => capture("task")}>Save task</button>{" "}<button disabled={!hasCommand || busy} onClick={() => capture("note")}>Save note</button><p role="status">{result}</p></div>
           <div className="mt-4 flex flex-wrap gap-2">
             <button className="btn btn-primary" type="button" onClick={() => setCommand("Meta glasses updated developer display access. Build Atlas HUD next.")}>Try Architect</button>
             <button className="btn" type="button" onClick={() => setCommand("Plan this week's TSC content around Atlas and smart glasses.")}>Try TSC</button>
