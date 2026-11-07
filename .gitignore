@@ -205,3 +205,12 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Local Atlas workspace and credentials
+data/
+*.sqlite3
+*.sqlite3-*
+frontend/.env.local
+.venv/
+node_modules/
+.next/

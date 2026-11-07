@@ -27,7 +27,7 @@ export default function SchedulerPage() {
         </Tile>
         <Tile title="Actions">
           <a className="underline"
-             href="https://github.com/Aydan5333/Atlas-AI/actions/workflows/atlas_agent.yml"
+             href="https://github.com/Aydan5333/Atlas-AI/actions/workflows/atlas_agent_mode.yml"
              target="_blank" rel="noreferrer">Open Atlas Agent workflow</a>
         </Tile>
       </div>

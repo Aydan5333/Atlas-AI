@@ -13,7 +13,7 @@ TSC is a cultural platform built from equal pillars:
 - TECH / ATLAS
 - EDUCATION / ACADEMY
 
-The garage/event lane is a powerful proof model, but it must not shrink the brand into only cars.
+The garage/event lane is a powerful proof model, but it must not shrink the brand into only cars. See [TSC Ecosystem Operating Model](TSC_ECOSYSTEM_OPERATING_MODEL.md) for how pillars can operate independently, reinforce one another when useful, and keep shared TSC value visible without combining separate businesses' finances or obligations.
 
 ## Pillar rule
 
@@ -27,7 +27,7 @@ Each pillar should have:
 - its own revenue path
 - its own proof assets
 
-Atlas should track the health of every pillar so TSC does not accidentally overbuild one lane while starving the others.
+Atlas should track the health of every pillar so TSC does not accidentally overbuild one lane while starving the others. Each pillar is an independent path for projects, customers, proof, and revenue—not a separate brand that must be fed before TSC can earn. Cross-pillar work is an intentional collaboration: use it when it improves the project, and track the actual contribution and cost of each lane.
 
 ## Pillar 1: ART
 
