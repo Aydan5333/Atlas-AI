@@ -53,5 +53,6 @@ jobs:
 
       - name: Commit
         uses: stefanzweifel/git-auto-commit-action@v5
-        env: { GITHUB_TOKEN: ${{ secrets.WORKFLOW_TOKEN }} }
+        env:
+          GITHUB_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}
         with: { commit_message: "chore: wire API imports + enable CORS in run.py" }

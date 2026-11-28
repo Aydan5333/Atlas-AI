@@ -6,7 +6,11 @@ TSC is the parent mission and culture layer. Atlas is the operating system. Agen
 
 ## Current milestone
 
-Atlas Architect Foundation
+Atlas Operational Core v0.1 (local build; not deployed)
+
+Start at `/workspace`. Setup and the implemented/planned feature matrix are in [Local Core](docs/LOCAL_CORE.md). Notes, profile, tasks, projects, contacts, manual innovation radar, briefing, and export now have authenticated local persistence. AI conversation and external integrations remain planned.
+
+### Earlier milestone: Atlas Architect Foundation
 
 This milestone adds the first CTO-style agent lane for tracking emerging technology, protecting the Atlas/TSC vision, and turning useful updates into small experiments and roadmap moves.
 
@@ -20,7 +24,7 @@ This milestone adds the first CTO-style agent lane for tracking emerging technol
 
 ## How to run locally
 
-1. Create `.env` from `.env.example` and fill keys.
+1. Run `python scripts/setup_local.py` to generate matching local credentials. See `docs/LOCAL_CORE.md` if environment files already exist.
 2. Install backend dependencies:
 
    ```bash
@@ -55,7 +59,8 @@ This milestone adds the first CTO-style agent lane for tracking emerging technol
 
 ## Current frontend pages
 
-- `/` Dashboard
+- `/workspace` Authenticated local workspace
+- `/` Dashboard prototype
 - `/architect` Atlas Architect
 - `/chat` Command Router
 - `/notes`
